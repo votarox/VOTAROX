@@ -56,7 +56,27 @@ async function addPoll() {
 }
 
 // تصويت
-async function vote(id, type, up, down) {
+  async function vote(id, type, up, down) {
+
+  const votedKey = "voted_" + id;
+
+  if (localStorage.getItem(votedKey)) {
+    alert("You already voted.");
+    return;
+  }
+
+  if (type === "up") up++;
+  if (type === "down") down++;
+
+  await client.from("polls").update({
+    upvotes: up,
+    downvotes: down
+  }).eq("id", id);
+
+  localStorage.setItem(votedKey, "true");
+
+  loadPolls();
+}
   if (type === "up") up++;
   if (type === "down") down++;
 
