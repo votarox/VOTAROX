@@ -16,15 +16,43 @@
 
       <h2 class="text-xl font-semibold mb-4">Create a poll</h2>
 
-      <input class="w-full p-2 border rounded mb-3" placeholder="Your question...">
+      <input id="question" class="w-full p-2 border rounded mb-3" placeholder="Your question...">
 
-      <button class="w-full bg-black text-white p-2 rounded">
+      <button onclick="addPoll()" class="w-full bg-black text-white p-2 rounded">
         Publish Poll
       </button>
 
     </div>
 
+    <div id="polls" class="mt-10 space-y-4"></div>
+
   </div>
+
+<script>
+function addPoll() {
+  const q = document.getElementById("question").value;
+
+  if (!q) return;
+
+  const poll = document.createElement("div");
+  poll.className = "bg-white p-4 rounded shadow";
+
+  poll.innerHTML = `
+    <p class="font-semibold">${q}</p>
+    <div class="mt-3 flex gap-2 justify-center">
+      <button onclick="vote(this)" class="px-4 py-1 bg-green-500 text-white rounded">👍</button>
+      <button onclick="vote(this)" class="px-4 py-1 bg-red-500 text-white rounded">👎</button>
+    </div>
+  `;
+
+  document.getElementById("polls").prepend(poll);
+  document.getElementById("question").value = "";
+}
+
+function vote(btn) {
+  btn.innerText = "Voted ✔";
+}
+</script>
 
 </body>
 </html>
