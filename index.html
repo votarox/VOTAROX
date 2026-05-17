@@ -82,7 +82,12 @@ async function addPoll() {
 }
 
 // ====== VOTE (prevent double vote) ======
-async function vote(id, type, up, down) {
+async function vote(id, type, up, down)const { data } = await client.auth.getUser();
+
+if (!data.user) {
+  alert("You must sign in first");
+  return;
+} {
 
   const key = "voted_" + id;
 
