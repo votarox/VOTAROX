@@ -140,12 +140,54 @@ function render(polls) {
 }
 
 // ================= VOTE =================
-async function vote(id, type)const voted = localStorage.getItem("vote_" + id);
+async function vote(id, type) {
 
-if (voted) {
-  alert("You already voted");
-  return;
-} {
+  const voted = localStorage.getItem("vote_" + id);
+
+  if (voted) {
+    alert("You already voted");
+    return;
+  }
+
+  const { data } = await client.auth.getUser();
+
+  if (!data.user) {
+    alert("Login first");
+    return;
+  }
+
+  let poll;
+
+  const response = await client
+    .from("polls")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  poll = response.data;
+
+  if (type === "up") {
+    await client
+      .from("polls")
+      .update({
+        upvotes: poll.upvotes + 1
+      })
+      .eq("id", id);
+  }
+
+  if (type === "down") {
+    await client
+      .from("polls")
+      .update({
+        downvotes: poll.downvotes + 1
+      })
+      .eq("id", id);
+  }
+
+  localStorage.setItem("vote_" + id, "true");
+
+  loadPolls();
+}
 
   const { data } = await client.auth.getUser();
 
