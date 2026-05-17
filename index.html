@@ -1,296 +1,155 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Votarox</title>
-
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 
-<body class="bg-gray-100 min-h-screen p-6">
+<body class="bg-gray-100 p-6">
 
-  <div class="max-w-xl mx-auto">
+  <div class="max-w-xl mx-auto bg-white p-6 rounded shadow">
 
-    <h1 class="text-4xl font-bold text-center mb-2">
-      Votarox
-    </h1>
+    <h1 class="text-2xl font-bold mb-4">Votarox</h1>
 
-    <p class="text-center text-gray-600 mb-6">
-      Ask • Vote • Decide
-    </p>
+    <!-- Auth -->
+    <input id="email" class="w-full p-2 border mb-2" placeholder="Email">
+    <input id="password" type="password" class="w-full p-2 border mb-2" placeholder="Password">
 
-    <!-- LOGIN -->
-    <div class="bg-white p-4 rounded-xl shadow mb-4">
+    <button onclick="signUp()" class="w-full bg-green-500 text-white p-2 mb-2">
+      Sign Up
+    </button>
 
-      <input
-        id="email"
-        type="email"
-        placeholder="Email"
-        class="w-full border p-2 rounded mb-2"
-      >
+    <button onclick="signIn()" class="w-full bg-blue-500 text-white p-2 mb-4">
+      Sign In
+    </button>
 
-      <input
-        id="password"
-        type="password"
-        placeholder="Password"
-        class="w-full border p-2 rounded mb-2"
-      >
+    <!-- Poll -->
+    <input id="question" class="w-full p-2 border mb-2" placeholder="Ask a question">
 
-      <button
-        onclick="signUp()"
-        class="w-full bg-green-500 text-white p-2 rounded mb-2"
-      >
-        Sign Up
-      </button>
+    <button onclick="addPoll()" class="w-full bg-purple-500 text-white p-2 mb-4">
+      Post Poll
+    </button>
 
-      <button
-        onclick="signIn()"
-        class="w-full bg-blue-500 text-white p-2 rounded"
-      >
-        Sign In
-      </button>
-
-      <p
-        id="status"
-        class="text-center text-sm mt-3 text-gray-600"
-      ></p>
-
-    </div>
-
-    <!-- CREATE POLL -->
-    <div class="bg-white p-4 rounded-xl shadow mb-4">
-
-      <input
-        id="question"
-        placeholder="Write your question..."
-        class="w-full border p-2 rounded mb-2"
-      >
-
-      <button
-        onclick="addPoll()"
-        class="w-full bg-black text-white p-2 rounded"
-      >
-        Post Poll
-      </button>
-
-    </div>
-
-    <!-- POLLS -->
     <div id="polls" class="space-y-4"></div>
 
   </div>
 
-  <script>
+<script>
+// ================= SUPABASE =================
 
-    // ================= SUPABASE =================
+// ✳️ ضع الرابط هنا
+const supabaseUrl = "https://kxpbgybstgmkmrlgzvpr.supabase.co";
 
-    const supabaseUrl = "https://kxpbgybstgmkmrlgzvpr.supabase.co";
+// ✳️ ضع المفتاح هنا
+const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt4cGJneWJzdGdta21ybGd6dnByIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg5NjI4NTIsImV4cCI6MjA5NDUzODg1Mn0.tPQN5mNV4dZXi2rOZsjdg4M-w4e_3epW2Hl_RrhN9zE";
 
-    const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt4cGJneWJzdGdta21ybGd6dnByIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg5NjI4NTIsImV4cCI6MjA5NDUzODg1Mn0.tPQN5mNV4dZXi2rOZsjdg4M-w4e_3epW2Hl_RrhN9zE";
+const client = supabase.createClient(supabaseUrl, supabaseKey);
 
-    const client = supabase.createClient(
-      supabaseUrl,
-      supabaseKey
-    );
+// ================= AUTH =================
 
-    // ================= SIGN UP =================
+async function signUp() {
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
 
-    async function signUp() {
+  const { error } = await client.auth.signUp({
+    email,
+    password
+  });
 
-      const email = document.getElementById("email").value;
+  if (error) alert(error.message);
+  else alert("Check your email for confirmation!");
+}
 
-      const password = document.getElementById("password").value;
+async function signIn() {
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
 
-      const { error } = await client.auth.signUp({
-        email,
-        password
-      });
+  const { error } = await client.auth.signInWithPassword({
+    email,
+    password
+  });
 
-      if (error) {
-        alert(error.message);
-        return;
-      }
-
-      alert("Check your email");
-    }
-
-    // ================= SIGN IN =================
-
-    async function signIn() {
-
-      const email = document.getElementById("email").value;
-
-      const password = document.getElementById("password").value;
-
-      const { error } = await client.auth.signInWithPassword({
-        email,
-        password
-      });
-
-      if (error) {
-        alert(error.message);
-        return;
-      }
-
-      document.getElementById("status").innerText =
-        "Logged in ✔";
-    }
-
-    // ================= ADD POLL =================
-
-    async function addPoll() {
-
-      const q = document
-        .getElementById("question")
-        .value
-        .trim();
-
-      if (!q) return;
-
-      const { error } = await client
-        .from("polls")
-        .insert([
-          {
-            question: q,
-            upvotes: 0,
-            downvotes: 0
-          }
-        ]);
-
-      if (error) {
-        alert(error.message);
-        return;
-      }
-
-      document.getElementById("question").value = "";
-
-      loadPolls();
-    }
-
-    // ================= LOAD POLLS =================
-
-    async function loadPolls() {
-
-      const { data, error } = await client
-        .from("polls")
-        .select("*")
-        .order("id", { ascending: false });
-
-      if (error) {
-        console.log(error);
-        return;
-      }
-
-      render(data || []);
-    }
-
-    // ================= RENDER =================
-
-    function render(polls) {
-
-      const box = document.getElementById("polls");
-
-      box.innerHTML = "";
-
-      polls.forEach(poll => {
-
-        box.innerHTML += `
-          <div class="bg-white p-4 rounded-xl shadow">
-
-            <p class="font-bold text-lg mb-3">
-              ${poll.question}
-            </p>
-
-            <div class="flex gap-2">
-
-              <button
-                onclick="vote(${poll.id}, 'up')"
-                class="bg-green-500 text-white px-3 py-1 rounded"
-              >
-                👍 ${poll.upvotes}
-              </button>
-
-              <button
-                onclick="vote(${poll.id}, 'down')"
-                class="bg-red-500 text-white px-3 py-1 rounded"
-              >
-                👎 ${poll.downvotes}
-              </button>
-
-            </div>
-
-          </div>
-        `;
-      });
-    }
-
-    // ================= VOTE =================
-
-    async function vote(id, type) {
-
-      const voted = localStorage.getItem(
-        "vote_" + id
-      );
-
-      if (voted) {
-        alert("You already voted");
-        return;
-      }
-
-      const { data } = await client.auth.getUser();
-
-      if (!data.user) {
-        alert("Login first");
-        return;
-      }
-
-      const response = await client
-        .from("polls")
-        .select("*")
-        .eq("id", id)
-        .single();
-
-      const poll = response.data;
-
-      if (type === "up") {
-
-        await client
-          .from("polls")
-          .update({
-            upvotes: poll.upvotes + 1
-          })
-          .eq("id", id);
-
-      }
-
-      if (type === "down") {
-
-        await client
-          .from("polls")
-          .update({
-            downvotes: poll.downvotes + 1
-          })
-          .eq("id", id);
-
-      }
-
-      localStorage.setItem(
-        "vote_" + id,
-        "true"
-      );
-
-      loadPolls();
-    }
-
-    // ================= START =================
-
+  if (error) alert(error.message);
+  else {
+    alert("Logged in ✔");
     loadPolls();
+  }
+}
 
-  </script>
+// ================= POLLS =================
+
+async function addPoll() {
+  const input = document.getElementById("question");
+  const q = input.value.trim();
+
+  if (!q) return;
+
+  const { error } = await client
+    .from("polls")
+    .insert([{ question: q, upvotes: 0, downvotes: 0 }]);
+
+  if (error) {
+    alert(error.message);
+  } else {
+    input.value = "";
+    loadPolls();
+  }
+}
+
+async function loadPolls() {
+  const { data } = await client
+    .from("polls")
+    .select("*")
+    .order("id", { ascending: false });
+
+  render(data || []);
+}
+
+function render(polls) {
+  const container = document.getElementById("polls");
+  container.innerHTML = "";
+
+  polls.forEach(p => {
+    container.innerHTML += `
+      <div class="p-3 border rounded">
+        <p class="font-bold">${p.question}</p>
+
+        <button onclick="vote(${p.id}, 'up')" class="text-green-600">
+          👍 ${p.upvotes}
+        </button>
+
+        <button onclick="vote(${p.id}, 'down')" class="text-red-600 ml-2">
+          👎 ${p.downvotes}
+        </button>
+      </div>
+    `;
+  });
+}
+
+async function vote(id, type) {
+  const { data } = await client
+    .from("polls")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  if (!data) return;
+
+  const updates = type === "up"
+    ? { upvotes: data.upvotes + 1 }
+    : { downvotes: data.downvotes + 1 };
+
+  await client.from("polls").update(updates).eq("id", id);
+
+  loadPolls();
+}
+
+// ================= START =================
+loadPolls();
+
+</script>
 
 </body>
-
 </html>
