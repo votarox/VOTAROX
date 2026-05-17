@@ -72,12 +72,38 @@
 <script>
 console.log("JS is working");
 
-function signUp() {
-  alert("SIGN UP WORKS");
+async function signUp() {
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+
+  const { data, error } = await client.auth.signUp({
+    email,
+    password
+  });
+
+  if (error) {
+    alert(error.message);
+    return;
+  }
+
+  alert("Check your email to confirm account");
 }
 
-function signIn() {
-  alert("SIGN IN WORKS");
+async function signIn() {
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+
+  const { data, error } = await client.auth.signInWithPassword({
+    email,
+    password
+  });
+
+  if (error) {
+    alert(error.message);
+    return;
+  }
+
+  alert("Logged in successfully");
 }
 </script>
 
