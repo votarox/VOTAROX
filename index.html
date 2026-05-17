@@ -140,7 +140,12 @@ function render(polls) {
 }
 
 // ================= VOTE =================
-async function vote(id, type) {
+async function vote(id, type)const voted = localStorage.getItem("vote_" + id);
+
+if (voted) {
+  alert("You already voted");
+  return;
+} {
 
   const { data } = await client.auth.getUser();
 
@@ -159,7 +164,7 @@ async function vote(id, type) {
     .update(update)
     .eq("id", id);
 
-  loadPolls();
+ localStorage.setItem("vote_" + id, "true"); loadPolls();
 }
 
 loadPolls();
