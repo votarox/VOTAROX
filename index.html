@@ -1,60 +1,54 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Votarox</title>
+<meta charset="UTF-8">
+<title>Votarox Pro</title>
 
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 
-<body class="bg-gradient-to-br from-gray-100 to-gray-200 min-h-screen p-6">
+<body class="bg-gradient-to-br from-gray-100 to-gray-200 min-h-screen">
 
-<div class="max-w-2xl mx-auto bg-white rounded-2xl shadow-xl p-6">
+<div class="max-w-3xl mx-auto p-4">
 
-  <h1 class="text-3xl font-bold text-center text-purple-600 mb-4">
-    Votarox 🗳️
-  </h1>
-
-  <div id="userBox" class="text-sm text-gray-600 mb-4 text-center"></div>
+  <!-- HEADER -->
+  <div class="bg-white p-4 rounded-xl shadow mb-4 text-center">
+    <h1 class="text-3xl font-bold text-purple-600">Votarox Pro 🚀</h1>
+    <div id="userBox" class="text-sm text-gray-500 mt-2"></div>
+  </div>
 
   <!-- AUTH -->
-  <div class="grid gap-2 mb-6">
-    <input id="email" class="p-2 border rounded" placeholder="Email">
-    <input id="password" type="password" class="p-2 border rounded" placeholder="Password">
+  <div class="bg-white p-4 rounded-xl shadow mb-4">
+    <div class="grid gap-2">
+      <input id="email" class="p-2 border rounded" placeholder="Email">
+      <input id="password" type="password" class="p-2 border rounded" placeholder="Password">
 
-    <div class="grid grid-cols-2 gap-2">
-      <button onclick="signUp()" class="bg-green-500 text-white p-2 rounded">
-        Sign Up
-      </button>
+      <div class="grid grid-cols-2 gap-2">
+        <button onclick="signUp()" class="bg-green-500 text-white p-2 rounded">Sign Up</button>
+        <button onclick="signIn()" class="bg-blue-500 text-white p-2 rounded">Sign In</button>
+      </div>
 
-      <button onclick="signIn()" class="bg-blue-500 text-white p-2 rounded">
-        Sign In
-      </button>
+      <button onclick="logout()" class="bg-red-500 text-white p-2 rounded">Logout</button>
     </div>
-
-    <button onclick="logout()" class="bg-red-500 text-white p-2 rounded">
-      Logout
-    </button>
   </div>
 
   <!-- CREATE POLL -->
-  <div class="mb-6">
-    <input id="question" class="w-full p-2 border rounded mb-2" placeholder="Write your poll...">
-
+  <div class="bg-white p-4 rounded-xl shadow mb-4">
+    <input id="question" class="w-full p-2 border rounded mb-2" placeholder="Create poll...">
     <button onclick="addPoll()" class="w-full bg-purple-500 text-white p-2 rounded">
       Post Poll
     </button>
   </div>
 
-  <!-- POLLS -->
-  <div id="polls" class="space-y-4"></div>
+  <!-- FEED -->
+  <div id="feed" class="space-y-4"></div>
 
 </div>
 
 <script>
 
-// ================= SUPABASE =================
+// ================= CORE =================
 
 const supabaseUrl = "https://kxpbgybstgmkmrlgzvpr.supabase.co";
 const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt4cGJneWJzdGdta21ybGd6dnByIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg5NjI4NTIsImV4cCI6MjA5NDUzODg1Mn0.tPQN5mNV4dZXi2rOZsjdg4M-w4e_3epW2Hl_RrhN9zE";
@@ -63,113 +57,131 @@ const client = supabase.createClient(supabaseUrl, supabaseKey);
 
 // ================= USER =================
 
-async function getUser() {
+async function getUser(){
   const { data } = await client.auth.getUser();
   return data.user;
 }
 
-async function updateUserUI() {
+async function updateUserUI(){
   const user = await getUser();
-
   document.getElementById("userBox").innerHTML =
-    user ? `Logged in as: <b>${user.email}</b>` : "Not logged in";
+    user ? `Logged in as <b>${user.email}</b>` : "Guest mode";
 }
 
 // ================= AUTH =================
 
-async function signUp() {
-  const { error } = await client.auth.signUp({
+async function signUp(){
+  await client.auth.signUp({
     email: email.value,
     password: password.value
   });
-
-  if (error) alert(error.message);
-  else alert("Check your email!");
+  alert("Check email");
 }
 
-async function signIn() {
-  const { error } = await client.auth.signInWithPassword({
+async function signIn(){
+  await client.auth.signInWithPassword({
     email: email.value,
     password: password.value
   });
-
-  if (error) alert(error.message);
-  else {
-    updateUserUI();
-    loadPolls();
-  }
+  updateUserUI();
+  loadFeed();
 }
 
-async function logout() {
+async function logout(){
   await client.auth.signOut();
   updateUserUI();
-  loadPolls();
+  loadFeed();
 }
 
-// ================= CREATE POLL (LOGIN REQUIRED) =================
+// ================= POSTS (POLLS) =================
 
-async function addPoll() {
+async function addPoll(){
 
   const user = await getUser();
+  if(!user) return alert("Login required");
 
-  if (!user) {
-    alert("Please login first");
-    return;
-  }
-
-  if (!question.value) return;
-
-  const { error } = await client.from("polls").insert([
-    {
-      question: question.value,
-      upvotes: 0,
-      downvotes: 0,
-      user_email: user.email
-    }
-  ]);
-
-  if (error) alert(error.message);
+  await client.from("polls").insert([{
+    question: question.value,
+    upvotes: 0,
+    downvotes: 0,
+    user_email: user.email
+  }]);
 
   question.value = "";
-  loadPolls();
+  loadFeed();
 }
 
-// ================= LOAD POLLS =================
+// ================= VOTES =================
 
-async function loadPolls() {
+async function vote(id,type){
+
+  const user = await getUser();
+  if(!user) return alert("Login required");
+
+  const { data } = await client
+    .from("votes")
+    .select("*")
+    .eq("poll_id",id)
+    .eq("user_email",user.email);
+
+  if(data.length > 0) return alert("Already voted");
+
+  await client.from("votes").insert([{
+    poll_id:id,
+    user_email:user.email
+  }]);
+
+  const { data:poll } = await client
+    .from("polls")
+    .select("*")
+    .eq("id",id)
+    .single();
+
+  const update = type==="up"
+    ? {upvotes:poll.upvotes+1}
+    : {downvotes:poll.downvotes+1};
+
+  await client.from("polls").update(update).eq("id",id);
+
+  loadFeed();
+}
+
+// ================= FEED =================
+
+async function loadFeed(){
 
   const { data } = await client
     .from("polls")
     .select("*")
-    .order("id", { ascending: false });
+    .order("id",{ascending:false});
 
   render(data || []);
 }
 
-function render(polls) {
+function render(items){
 
-  pollsContainer.innerHTML = "";
+  feed.innerHTML = "";
 
-  polls.forEach(p => {
+  items.forEach(p=>{
 
-    pollsContainer.innerHTML += `
-      <div class="bg-gray-50 border rounded-xl p-4 shadow">
+    feed.innerHTML += `
+      <div class="bg-white p-4 rounded-xl shadow">
 
-        <p class="font-bold mb-2">${p.question}</p>
-        <p class="text-xs text-gray-500 mb-3">by ${p.user_email || "unknown"}</p>
+        <div class="font-bold">${p.question}</div>
+        <div class="text-xs text-gray-400 mb-2">by ${p.user_email}</div>
 
         <div class="flex gap-2">
-
-          <button onclick="vote(${p.id}, 'up')"
-            class="bg-green-500 text-white px-3 py-1 rounded">
+          <button onclick="vote(${p.id},'up')" class="bg-green-500 text-white px-3 py-1 rounded">
             👍 ${p.upvotes}
           </button>
 
-          <button onclick="vote(${p.id}, 'down')"
-            class="bg-red-500 text-white px-3 py-1 rounded">
+          <button onclick="vote(${p.id},'down')" class="bg-red-500 text-white px-3 py-1 rounded">
             👎 ${p.downvotes}
           </button>
 
+          <button class="ml-auto text-blue-500 text-sm">
+            💬 Comments (soon)
+          </button>
         </div>
 
       </div>
@@ -177,65 +189,24 @@ function render(polls) {
   });
 }
 
-// ================= VOTE (ANTI DUPLICATE) =================
+// ================= REALTIME =================
 
-async function vote(id, type) {
-
-  const user = await getUser();
-
-  if (!user) {
-    alert("Please login first");
-    return;
-  }
-
-  const { data: existing } = await client
-    .from("votes")
-    .select("*")
-    .eq("poll_id", id)
-    .eq("user_email", user.email);
-
-  if (existing.length > 0) {
-    alert("You already voted!");
-    return;
-  }
-
-  const { error: insertError } = await client.from("votes").insert([
-    {
-      poll_id: id,
-      user_email: user.email
-    }
-  ]);
-
-  if (insertError) {
-    alert("Vote blocked (duplicate protection)");
-    return;
-  }
-
-  const { data: poll } = await client
-    .from("polls")
-    .select("*")
-    .eq("id", id)
-    .single();
-
-  const update =
-    type === "up"
-      ? { upvotes: poll.upvotes + 1 }
-      : { downvotes: poll.downvotes + 1 };
-
-  await client
-    .from("polls")
-    .update(update)
-    .eq("id", id);
-
-  loadPolls();
-}
+client.channel('polls-live')
+.on('postgres_changes',{
+  event:'*',
+  schema:'public',
+  table:'polls'
+},()=>{
+  loadFeed();
+})
+.subscribe();
 
 // ================= START =================
 
-const pollsContainer = document.getElementById("polls");
+const feed = document.getElementById("feed");
 
 updateUserUI();
-loadPolls();
+loadFeed();
 
 </script>
 
