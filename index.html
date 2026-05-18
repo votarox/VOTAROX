@@ -2,43 +2,39 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Votarox Pro Stable</title>
+<title>Votarox V2 Fixed</title>
 
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 
-<body class="bg-gray-100 min-h-screen text-gray-800">
+<body class="bg-gray-100 min-h-screen">
 
 <div class="max-w-2xl mx-auto p-4">
 
   <!-- HEADER -->
-  <div class="bg-white p-4 rounded-xl shadow mb-4 text-center">
-    <h1 class="text-3xl font-bold text-purple-600">Votarox 🚀</h1>
+  <div class="bg-white p-4 rounded shadow mb-4 text-center">
+    <h1 class="text-3xl font-bold text-purple-600">Votarox V2 🚀</h1>
     <div id="userBox" class="text-sm text-gray-500 mt-1"></div>
   </div>
 
   <!-- AUTH -->
-  <div class="bg-white p-4 rounded-xl shadow mb-4">
-    <input id="email" class="w-full p-2 border rounded mb-2" placeholder="Email">
-    <input id="password" type="password" class="w-full p-2 border rounded mb-2" placeholder="Password">
+  <div class="bg-white p-4 rounded shadow mb-4">
+    <input id="email" class="w-full p-2 border mb-2" placeholder="Email">
+    <input id="password" type="password" class="w-full p-2 border mb-2" placeholder="Password">
 
     <div class="grid grid-cols-2 gap-2">
       <button onclick="signUp()" class="bg-green-500 text-white p-2 rounded">Sign Up</button>
       <button onclick="signIn()" class="bg-blue-500 text-white p-2 rounded">Sign In</button>
     </div>
-
-    <button onclick="logout()" class="bg-red-500 text-white p-2 rounded w-full mt-2">
-      Logout
-    </button>
   </div>
 
-  <!-- CREATE POLL -->
-  <div class="bg-white p-4 rounded-xl shadow mb-4">
-    <input id="question" class="w-full p-2 border rounded mb-2" placeholder="Write poll...">
+  <!-- CREATE POST -->
+  <div class="bg-white p-4 shadow rounded mb-4">
+    <input id="question" class="w-full p-2 border mb-2" placeholder="Write post...">
 
     <button onclick="addPoll()" class="w-full bg-purple-500 text-white p-2 rounded">
-      Post Poll
+      Post
     </button>
   </div>
 
@@ -66,47 +62,63 @@ async function getUser(){
 async function updateUI(){
   const user = await getUser();
   document.getElementById("userBox").innerHTML =
-    user ? `Logged in: ${user.email}` : "Guest";
+    user ? `Logged in: <b>${user.email}</b>` : "Guest";
 }
 
 // ================= AUTH =================
 
 async function signUp(){
-  await client.auth.signUp({
+  const { data, error } = await client.auth.signUp({
     email: email.value,
     password: password.value
   });
+
+  console.log("SIGNUP:", data, error);
   alert("Check email");
 }
 
 async function signIn(){
-  await client.auth.signInWithPassword({
+  const { data, error } = await client.auth.signInWithPassword({
     email: email.value,
     password: password.value
   });
+
+  console.log("LOGIN:", data, error);
+
   updateUI();
   loadFeed();
 }
 
-async function logout(){
-  await client.auth.signOut();
-  updateUI();
-  loadFeed();
-}
-
-// ================= POLLS =================
+// ================= ADD POST =================
 
 async function addPoll(){
 
   const user = await getUser();
-  if(!user) return alert("Login required");
 
-  await client.from("polls").insert([{
-    question: question.value,
-    upvotes: 0,
-    downvotes: 0,
-    user_email: user.email
-  }]);
+  console.log("USER:", user);
+  console.log("TEXT:", question.value);
+
+  if(!user){
+    alert("Login required");
+    return;
+  }
+
+  const { data, error } = await client
+    .from("polls")
+    .insert([{
+      question: question.value,
+      upvotes: 0,
+      downvotes: 0,
+      user_email: user.email
+    }])
+    .select();
+
+  console.log("INSERT RESULT:", data, error);
+
+  if(error){
+    alert("Error inserting: " + error.message);
+    return;
+  }
 
   question.value = "";
   loadFeed();
@@ -116,10 +128,17 @@ async function addPoll(){
 
 async function loadFeed(){
 
-  const { data } = await client
+  const { data, error } = await client
     .from("polls")
     .select("*")
     .order("id",{ascending:false});
+
+  console.log("FEED DATA:", data, error);
+
+  if(error){
+    feed.innerHTML = "Error loading data";
+    return;
+  }
 
   render(data || []);
 }
@@ -128,28 +147,19 @@ async function loadFeed(){
 
 function render(items){
 
+  const feed = document.getElementById("feed");
   feed.innerHTML = "";
 
   items.forEach(p=>{
 
     feed.innerHTML += `
-      <div class="bg-white p-4 rounded-xl shadow">
+      <div class="bg-white p-4 rounded shadow">
 
-        <div class="font-bold text-lg">${p.question}</div>
-        <div class="text-xs text-gray-400 mb-2">${p.user_email}</div>
+        <div class="font-bold">${p.question}</div>
+        <div class="text-xs text-gray-400">${p.user_email}</div>
 
-        <div class="flex gap-2">
-
-          <button onclick="vote(${p.id},'up')"
-            class="bg-green-500 text-white px-3 py-1 rounded">
-            👍 ${p.upvotes}
-          </button>
-
-          <button onclick="vote(${p.id},'down')"
-            class="bg-red-500 text-white px-3 py-1 rounded">
-            👎 ${p.downvotes}
-          </button>
-
+        <div class="text-sm mt-2">
+          👍 ${p.upvotes} | 👎 ${p.downvotes}
         </div>
 
       </div>
@@ -157,47 +167,7 @@ function render(items){
   });
 }
 
-// ================= VOTE =================
-
-async function vote(id,type){
-
-  const user = await getUser();
-  if(!user) return alert("Login required");
-
-  const check = await client
-    .from("votes")
-    .select("*")
-    .eq("poll_id",id)
-    .eq("user_email",user.email);
-
-  if(check.data.length > 0){
-    alert("Already voted");
-    return;
-  }
-
-  await client.from("votes").insert([{
-    poll_id:id,
-    user_email:user.email
-  }]);
-
-  const { data:poll } = await client
-    .from("polls")
-    .select("*")
-    .eq("id",id)
-    .single();
-
-  const update = type==="up"
-    ? {upvotes:poll.upvotes+1}
-    : {downvotes:poll.downvotes+1};
-
-  await client.from("polls").update(update).eq("id",id);
-
-  loadFeed();
-}
-
 // ================= START =================
-
-const feed = document.getElementById("feed");
 
 updateUI();
 loadFeed();
