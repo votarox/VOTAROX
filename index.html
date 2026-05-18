@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Votarox Full V3</title>
+<title>Votarox V4</title>
 
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -12,10 +12,9 @@
 
 <div class="max-w-2xl mx-auto p-4">
 
-  <!-- HEADER -->
   <div class="bg-white p-4 rounded shadow mb-4 text-center">
-    <h1 class="text-3xl font-bold text-purple-600">Votarox 🚀</h1>
-    <div id="userBox" class="text-sm text-gray-500 mt-1"></div>
+    <h1 class="text-2xl font-bold text-purple-600">Votarox V4 🚀</h1>
+    <div id="userBox" class="text-sm text-gray-500"></div>
   </div>
 
   <!-- AUTH -->
@@ -33,9 +32,9 @@
     </button>
   </div>
 
-  <!-- CREATE POST -->
-  <div class="bg-white p-4 shadow rounded mb-4">
-    <input id="question" class="w-full p-2 border mb-2" placeholder="Write post...">
+  <!-- POST -->
+  <div class="bg-white p-4 rounded shadow mb-4">
+    <input id="question" class="w-full p-2 border mb-2" placeholder="Write post">
 
     <button onclick="addPoll()" class="w-full bg-purple-500 text-white p-2 rounded">
       Post
@@ -65,8 +64,8 @@ async function getUser(){
 
 async function updateUI(){
   const user = await getUser();
-  document.getElementById("userBox").innerHTML =
-    user ? `Logged in: ${user.email}` : "Guest";
+  document.getElementById("userBox").innerText =
+    user ? user.email : "Guest";
 }
 
 // ================= AUTH =================
@@ -76,6 +75,7 @@ async function signUp(){
     email: email.value,
     password: password.value
   });
+
   alert("Check email");
 }
 
@@ -95,12 +95,15 @@ async function logout(){
   loadFeed();
 }
 
-// ================= CREATE POST =================
+// ================= POST =================
 
 async function addPoll(){
 
   const user = await getUser();
-  if(!user) return alert("Login required");
+  if(!user){
+    alert("Login required");
+    return;
+  }
 
   const { error } = await client.from("polls").insert([{
     question: question.value,
@@ -118,7 +121,7 @@ async function addPoll(){
   loadFeed();
 }
 
-// ================= LOAD FEED =================
+// ================= LOAD =================
 
 async function loadFeed(){
 
@@ -143,40 +146,37 @@ function render(items){
       <div class="bg-white p-4 rounded shadow">
 
         <div class="font-bold">${p.question}</div>
-        <div class="text-xs text-gray-400 mb-2">${p.user_email}</div>
+        <div class="text-xs text-gray-400">${p.user_email}</div>
 
-        <div class="flex gap-2">
+        <div class="flex gap-2 mt-2">
 
-          <button onclick="vote(${p.id}, 'up')"
-            class="bg-green-500 text-white px-3 py-1 rounded">
+          <button onclick="vote(${p.id}, 'up')" class="bg-green-500 text-white px-3 py-1 rounded">
             👍 ${p.upvotes}
           </button>
 
-          <button onclick="vote(${p.id}, 'down')"
-            class="bg-red-500 text-white px-3 py-1 rounded">
+          <button onclick="vote(${p.id}, 'down')" class="bg-red-500 text-white px-3 py-1 rounded">
             👎 ${p.downvotes}
           </button>
 
         </div>
 
-        <button onclick="toggleComments(${p.id})"
-          class="text-blue-600 text-sm mt-2">
-          💬 Comments
-        </button>
-
-        <div id="comments-${p.id}" class="hidden mt-2">
-
-          <input id="input-${p.id}"
-            class="w-full p-2 border mb-2"
-            placeholder="Write comment">
-
-          <button onclick="addComment(${p.id})"
-            class="bg-blue-500 text-white px-2 py-1 rounded">
-            Send
+        <div class="mt-2">
+          <button onclick="toggleComments(${p.id})" class="text-blue-500">
+            💬 Comments
           </button>
 
-          <div id="list-${p.id}" class="mt-2"></div>
+          <div id="c-${p.id}" class="hidden mt-2">
 
+            <input id="input-${p.id}" class="w-full p-2 border mb-2">
+
+            <button onclick="addComment(${p.id})"
+              class="bg-blue-500 text-white px-2 py-1 rounded">
+              Send
+            </button>
+
+            <div id="list-${p.id}" class="mt-2"></div>
+
+          </div>
         </div>
 
       </div>
@@ -184,20 +184,24 @@ function render(items){
   });
 }
 
-// ================= VOTE SYSTEM =================
+// ================= VOTE (FIXED SIMPLE) =================
 
 async function vote(id, type){
 
   const user = await getUser();
-  if(!user) return alert("Login required");
+  if(!user){
+    alert("Login required");
+    return;
+  }
 
-  const check = await client
+  // check simple
+  const { data } = await client
     .from("votes")
     .select("*")
     .eq("poll_id", id)
     .eq("user_email", user.email);
 
-  if(check.data.length > 0){
+  if(data.length > 0){
     alert("Already voted");
     return;
   }
@@ -226,7 +230,7 @@ async function vote(id, type){
 
 function toggleComments(id){
 
-  const box = document.getElementById(`comments-${id}`);
+  const box = document.getElementById(`c-${id}`);
   box.classList.toggle("hidden");
 
   if(!box.classList.contains("hidden")){
@@ -234,33 +238,35 @@ function toggleComments(id){
   }
 }
 
-async function addComment(pollId){
+async function addComment(id){
 
   const user = await getUser();
-  if(!user) return alert("Login required");
+  if(!user){
+    alert("Login required");
+    return;
+  }
 
-  const input = document.getElementById(`input-${pollId}`);
-  if(!input.value) return;
+  const input = document.getElementById(`input-${id}`);
 
   await client.from("comments").insert([{
-    poll_id: pollId,
+    poll_id: id,
     user_email: user.email,
     content: input.value
   }]);
 
   input.value = "";
-  loadComments(pollId);
+  loadComments(id);
 }
 
-async function loadComments(pollId){
+async function loadComments(id){
 
   const { data } = await client
     .from("comments")
     .select("*")
-    .eq("poll_id", pollId)
+    .eq("poll_id", id)
     .order("id",{ascending:false});
 
-  const list = document.getElementById(`list-${pollId}`);
+  const list = document.getElementById(`list-${id}`);
   list.innerHTML = "";
 
   data.forEach(c=>{
@@ -273,8 +279,6 @@ async function loadComments(pollId){
 }
 
 // ================= START =================
-
-const feed = document.getElementById("feed");
 
 updateUI();
 loadFeed();
