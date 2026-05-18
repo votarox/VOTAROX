@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Votarox V2 Fixed</title>
+<title>Votarox Full V3</title>
 
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -14,7 +14,7 @@
 
   <!-- HEADER -->
   <div class="bg-white p-4 rounded shadow mb-4 text-center">
-    <h1 class="text-3xl font-bold text-purple-600">Votarox V2 🚀</h1>
+    <h1 class="text-3xl font-bold text-purple-600">Votarox 🚀</h1>
     <div id="userBox" class="text-sm text-gray-500 mt-1"></div>
   </div>
 
@@ -27,6 +27,10 @@
       <button onclick="signUp()" class="bg-green-500 text-white p-2 rounded">Sign Up</button>
       <button onclick="signIn()" class="bg-blue-500 text-white p-2 rounded">Sign In</button>
     </div>
+
+    <button onclick="logout()" class="bg-red-500 text-white p-2 rounded w-full mt-2">
+      Logout
+    </button>
   </div>
 
   <!-- CREATE POST -->
@@ -62,61 +66,51 @@ async function getUser(){
 async function updateUI(){
   const user = await getUser();
   document.getElementById("userBox").innerHTML =
-    user ? `Logged in: <b>${user.email}</b>` : "Guest";
+    user ? `Logged in: ${user.email}` : "Guest";
 }
 
 // ================= AUTH =================
 
 async function signUp(){
-  const { data, error } = await client.auth.signUp({
+  await client.auth.signUp({
     email: email.value,
     password: password.value
   });
-
-  console.log("SIGNUP:", data, error);
   alert("Check email");
 }
 
 async function signIn(){
-  const { data, error } = await client.auth.signInWithPassword({
+  await client.auth.signInWithPassword({
     email: email.value,
     password: password.value
   });
-
-  console.log("LOGIN:", data, error);
 
   updateUI();
   loadFeed();
 }
 
-// ================= ADD POST =================
+async function logout(){
+  await client.auth.signOut();
+  updateUI();
+  loadFeed();
+}
+
+// ================= CREATE POST =================
 
 async function addPoll(){
 
   const user = await getUser();
+  if(!user) return alert("Login required");
 
-  console.log("USER:", user);
-  console.log("TEXT:", question.value);
-
-  if(!user){
-    alert("Login required");
-    return;
-  }
-
-  const { data, error } = await client
-    .from("polls")
-    .insert([{
-      question: question.value,
-      upvotes: 0,
-      downvotes: 0,
-      user_email: user.email
-    }])
-    .select();
-
-  console.log("INSERT RESULT:", data, error);
+  const { error } = await client.from("polls").insert([{
+    question: question.value,
+    upvotes: 0,
+    downvotes: 0,
+    user_email: user.email
+  }]);
 
   if(error){
-    alert("Error inserting: " + error.message);
+    alert(error.message);
     return;
   }
 
@@ -128,17 +122,10 @@ async function addPoll(){
 
 async function loadFeed(){
 
-  const { data, error } = await client
+  const { data } = await client
     .from("polls")
     .select("*")
     .order("id",{ascending:false});
-
-  console.log("FEED DATA:", data, error);
-
-  if(error){
-    feed.innerHTML = "Error loading data";
-    return;
-  }
 
   render(data || []);
 }
@@ -156,10 +143,40 @@ function render(items){
       <div class="bg-white p-4 rounded shadow">
 
         <div class="font-bold">${p.question}</div>
-        <div class="text-xs text-gray-400">${p.user_email}</div>
+        <div class="text-xs text-gray-400 mb-2">${p.user_email}</div>
 
-        <div class="text-sm mt-2">
-          👍 ${p.upvotes} | 👎 ${p.downvotes}
+        <div class="flex gap-2">
+
+          <button onclick="vote(${p.id}, 'up')"
+            class="bg-green-500 text-white px-3 py-1 rounded">
+            👍 ${p.upvotes}
+          </button>
+
+          <button onclick="vote(${p.id}, 'down')"
+            class="bg-red-500 text-white px-3 py-1 rounded">
+            👎 ${p.downvotes}
+          </button>
+
+        </div>
+
+        <button onclick="toggleComments(${p.id})"
+          class="text-blue-600 text-sm mt-2">
+          💬 Comments
+        </button>
+
+        <div id="comments-${p.id}" class="hidden mt-2">
+
+          <input id="input-${p.id}"
+            class="w-full p-2 border mb-2"
+            placeholder="Write comment">
+
+          <button onclick="addComment(${p.id})"
+            class="bg-blue-500 text-white px-2 py-1 rounded">
+            Send
+          </button>
+
+          <div id="list-${p.id}" class="mt-2"></div>
+
         </div>
 
       </div>
@@ -167,7 +184,97 @@ function render(items){
   });
 }
 
+// ================= VOTE SYSTEM =================
+
+async function vote(id, type){
+
+  const user = await getUser();
+  if(!user) return alert("Login required");
+
+  const check = await client
+    .from("votes")
+    .select("*")
+    .eq("poll_id", id)
+    .eq("user_email", user.email);
+
+  if(check.data.length > 0){
+    alert("Already voted");
+    return;
+  }
+
+  await client.from("votes").insert([{
+    poll_id: id,
+    user_email: user.email
+  }]);
+
+  const { data: poll } = await client
+    .from("polls")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  const update = type === "up"
+    ? { upvotes: poll.upvotes + 1 }
+    : { downvotes: poll.downvotes + 1 };
+
+  await client.from("polls").update(update).eq("id", id);
+
+  loadFeed();
+}
+
+// ================= COMMENTS =================
+
+function toggleComments(id){
+
+  const box = document.getElementById(`comments-${id}`);
+  box.classList.toggle("hidden");
+
+  if(!box.classList.contains("hidden")){
+    loadComments(id);
+  }
+}
+
+async function addComment(pollId){
+
+  const user = await getUser();
+  if(!user) return alert("Login required");
+
+  const input = document.getElementById(`input-${pollId}`);
+  if(!input.value) return;
+
+  await client.from("comments").insert([{
+    poll_id: pollId,
+    user_email: user.email,
+    content: input.value
+  }]);
+
+  input.value = "";
+  loadComments(pollId);
+}
+
+async function loadComments(pollId){
+
+  const { data } = await client
+    .from("comments")
+    .select("*")
+    .eq("poll_id", pollId)
+    .order("id",{ascending:false});
+
+  const list = document.getElementById(`list-${pollId}`);
+  list.innerHTML = "";
+
+  data.forEach(c=>{
+    list.innerHTML += `
+      <div class="text-sm bg-gray-100 p-1 rounded mb-1">
+        <b>${c.user_email}</b>: ${c.content}
+      </div>
+    `;
+  });
+}
+
 // ================= START =================
+
+const feed = document.getElementById("feed");
 
 updateUI();
 loadFeed();
