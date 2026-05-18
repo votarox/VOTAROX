@@ -2,7 +2,6 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Votarox</title>
 
   <script src="https://cdn.tailwindcss.com"></script>
@@ -11,59 +10,35 @@
 
 <body class="bg-gray-100 p-6">
 
-<div class="max-w-xl mx-auto bg-white p-6 rounded-xl shadow">
+<div class="max-w-xl mx-auto bg-white p-6 rounded shadow">
 
-  <h1 class="text-3xl font-bold mb-6 text-center">
-    Votarox
-  </h1>
+  <h1 class="text-2xl font-bold mb-4">Votarox</h1>
+
+  <!-- USER INFO -->
+  <div id="userBox" class="mb-4 text-sm text-gray-600"></div>
 
   <!-- AUTH -->
+  <input id="email" class="w-full p-2 border mb-2" placeholder="Email">
+  <input id="password" type="password" class="w-full p-2 border mb-2" placeholder="Password">
 
-  <input
-    id="email"
-    type="email"
-    placeholder="Email"
-    class="w-full border p-2 rounded mb-2"
-  >
-
-  <input
-    id="password"
-    type="password"
-    placeholder="Password"
-    class="w-full border p-2 rounded mb-2"
-  >
-
-  <button
-    onclick="signUp()"
-    class="w-full bg-green-500 text-white p-2 rounded mb-2"
-  >
+  <button onclick="signUp()" class="w-full bg-green-500 text-white p-2 mb-2">
     Sign Up
   </button>
 
-  <button
-    onclick="signIn()"
-    class="w-full bg-blue-500 text-white p-2 rounded mb-4"
-  >
+  <button onclick="signIn()" class="w-full bg-blue-500 text-white p-2 mb-2">
     Sign In
   </button>
 
-  <!-- NEW POLL -->
-
-  <input
-    id="question"
-    type="text"
-    placeholder="Ask your question..."
-    class="w-full border p-2 rounded mb-2"
-  >
-
-  <button
-    onclick="addPoll()"
-    class="w-full bg-purple-500 text-white p-2 rounded mb-4"
-  >
-    Post Poll
+  <button onclick="logout()" class="w-full bg-red-500 text-white p-2 mb-4">
+    Logout
   </button>
 
-  <!-- POLLS -->
+  <!-- POLL INPUT -->
+  <input id="question" class="w-full p-2 border mb-2" placeholder="Ask a question">
+
+  <button onclick="addPoll()" class="w-full bg-purple-500 text-white p-2 mb-4">
+    Post Poll
+  </button>
 
   <div id="polls" class="space-y-4"></div>
 
@@ -71,15 +46,29 @@
 
 <script>
 
+// ================= SUPABASE =================
+
 const supabaseUrl = "https://kxpbgybstgmkmrlgzvpr.supabase.co";
 const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt4cGJneWJzdGdta21ybGd6dnByIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg5NjI4NTIsImV4cCI6MjA5NDUzODg1Mn0.tPQN5mNV4dZXi2rOZsjdg4M-w4e_3epW2Hl_RrhN9zE";
 
-const client = supabase.createClient(
-  supabaseUrl,
-  supabaseKey
-);
+const client = supabase.createClient(supabaseUrl, supabaseKey);
 
-// ================= SIGN UP =================
+// ================= UI USER =================
+
+async function updateUserUI() {
+  const { data } = await client.auth.getUser();
+  const user = data.user;
+
+  const box = document.getElementById("userBox");
+
+  if (user) {
+    box.innerHTML = `Logged in as: <b>${user.email}</b>`;
+  } else {
+    box.innerHTML = "Not logged in";
+  }
+}
+
+// ================= AUTH =================
 
 async function signUp() {
 
@@ -91,14 +80,9 @@ async function signUp() {
     password
   });
 
-  if (error) {
-    alert(error.message);
-  } else {
-    alert("Check your email!");
-  }
+  if (error) alert(error.message);
+  else alert("Check your email!");
 }
-
-// ================= SIGN IN =================
 
 async function signIn() {
 
@@ -110,15 +94,21 @@ async function signIn() {
     password
   });
 
-  if (error) {
-    alert(error.message);
-  } else {
+  if (error) alert(error.message);
+  else {
     alert("Logged in ✔");
+    updateUserUI();
     loadPolls();
   }
 }
 
-// ================= ADD POLL =================
+async function logout() {
+  await client.auth.signOut();
+  updateUserUI();
+  loadPolls();
+}
+
+// ================= POLLS =================
 
 async function addPoll() {
 
@@ -129,23 +119,14 @@ async function addPoll() {
 
   const { error } = await client
     .from("polls")
-    .insert([
-      {
-        question: q,
-        upvotes: 0,
-        downvotes: 0
-      }
-    ]);
+    .insert([{ question: q, upvotes: 0, downvotes: 0 }]);
 
-  if (error) {
-    alert(error.message);
-  } else {
+  if (error) alert(error.message);
+  else {
     input.value = "";
     loadPolls();
   }
 }
-
-// ================= LOAD POLLS =================
 
 async function loadPolls() {
 
@@ -157,40 +138,27 @@ async function loadPolls() {
   render(data || []);
 }
 
-// ================= RENDER =================
-
 function render(polls) {
 
   const container = document.getElementById("polls");
-
   container.innerHTML = "";
 
   polls.forEach(p => {
 
     container.innerHTML += `
+      <div class="border p-4 rounded">
 
-      <div class="border rounded p-4">
+        <p class="font-bold mb-2">${p.question}</p>
 
-        <h2 class="font-bold mb-3">
-          ${p.question}
-        </h2>
-
-        <button
-          onclick="vote(${p.id}, 'up')"
-          class="bg-green-500 text-white px-3 py-1 rounded"
-        >
+        <button onclick="vote(${p.id}, 'up')" class="bg-green-500 text-white px-3 py-1 rounded">
           👍 ${p.upvotes}
         </button>
 
-        <button
-          onclick="vote(${p.id}, 'down')"
-          class="bg-red-500 text-white px-3 py-1 rounded ml-2"
-        >
+        <button onclick="vote(${p.id}, 'down')" class="bg-red-500 text-white px-3 py-1 rounded ml-2">
           👎 ${p.downvotes}
         </button>
 
       </div>
-
     `;
   });
 }
@@ -199,51 +167,41 @@ function render(polls) {
 
 async function vote(id, type) {
 
-  const userData = await client.auth.getUser();
-  const user = userData.data.user;
+  const { data } = await client.auth.getUser();
+  const user = data.user;
 
   if (!user) {
     alert("Please login first");
     return;
   }
 
-  // CHECK EXISTING VOTE
-
-  const { data: existingVotes } = await client
+  const { data: existing } = await client
     .from("votes")
     .select("*")
     .eq("poll_id", id)
     .eq("user_email", user.email);
 
-  if (existingVotes.length > 0) {
+  if (existing.length > 0) {
     alert("You already voted!");
     return;
   }
 
-  // SAVE VOTE
+  await client.from("votes").insert([
+    {
+      poll_id: id,
+      user_email: user.email
+    }
+  ]);
 
-  await client
-    .from("votes")
-    .insert([
-      {
-        poll_id: id,
-        user_email: user.email
-      }
-    ]);
-
-  // GET CURRENT POLL
-
-  const { data } = await client
+  const { data: poll } = await client
     .from("polls")
     .select("*")
     .eq("id", id)
     .single();
 
-  // UPDATE COUNTS
-
   const updates = type === "up"
-    ? { upvotes: data.upvotes + 1 }
-    : { downvotes: data.downvotes + 1 };
+    ? { upvotes: poll.upvotes + 1 }
+    : { downvotes: poll.downvotes + 1 };
 
   await client
     .from("polls")
@@ -253,8 +211,9 @@ async function vote(id, type) {
   loadPolls();
 }
 
-// ================= START =================
+// ================= AUTO START =================
 
+updateUserUI();
 loadPolls();
 
 </script>
