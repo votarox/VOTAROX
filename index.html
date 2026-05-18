@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Votarox V4</title>
+<title>Votarox V5</title>
 
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -12,8 +12,9 @@
 
 <div class="max-w-2xl mx-auto p-4">
 
+  <!-- HEADER -->
   <div class="bg-white p-4 rounded shadow mb-4 text-center">
-    <h1 class="text-2xl font-bold text-purple-600">Votarox V4 🚀</h1>
+    <h1 class="text-2xl font-bold text-purple-600">Votarox V5 🚀</h1>
     <div id="userBox" class="text-sm text-gray-500"></div>
   </div>
 
@@ -75,7 +76,6 @@ async function signUp(){
     email: email.value,
     password: password.value
   });
-
   alert("Check email");
 }
 
@@ -95,7 +95,7 @@ async function logout(){
   loadFeed();
 }
 
-// ================= POST =================
+// ================= CREATE POST =================
 
 async function addPoll(){
 
@@ -121,7 +121,7 @@ async function addPoll(){
   loadFeed();
 }
 
-// ================= LOAD =================
+// ================= LOAD FEED =================
 
 async function loadFeed(){
 
@@ -161,13 +161,14 @@ function render(items){
         </div>
 
         <div class="mt-2">
-          <button onclick="toggleComments(${p.id})" class="text-blue-500">
+
+          <button onclick="toggleComments(${p.id})" class="text-blue-500 text-sm">
             💬 Comments
           </button>
 
           <div id="c-${p.id}" class="hidden mt-2">
 
-            <input id="input-${p.id}" class="w-full p-2 border mb-2">
+            <input id="input-${p.id}" class="w-full p-2 border mb-2" placeholder="Write comment">
 
             <button onclick="addComment(${p.id})"
               class="bg-blue-500 text-white px-2 py-1 rounded">
@@ -177,6 +178,7 @@ function render(items){
             <div id="list-${p.id}" class="mt-2"></div>
 
           </div>
+
         </div>
 
       </div>
@@ -184,7 +186,7 @@ function render(items){
   });
 }
 
-// ================= VOTE (FIXED SIMPLE) =================
+// ================= VOTE (FINAL FIXED VERSION) =================
 
 async function vote(id, type){
 
@@ -194,22 +196,35 @@ async function vote(id, type){
     return;
   }
 
-  // check simple
-  const { data } = await client
+  // CHECK SAFE
+  const { data, error } = await client
     .from("votes")
     .select("*")
     .eq("poll_id", id)
     .eq("user_email", user.email);
 
-  if(data.length > 0){
+  if(error){
+    alert(error.message);
+    return;
+  }
+
+  // IMPORTANT FIX
+  if (data && data.length > 0) {
     alert("Already voted");
     return;
   }
 
-  await client.from("votes").insert([{
-    poll_id: id,
-    user_email: user.email
-  }]);
+  const { error: insertError } = await client
+    .from("votes")
+    .insert([{
+      poll_id: id,
+      user_email: user.email
+    }]);
+
+  if(insertError){
+    alert(insertError.message);
+    return;
+  }
 
   const { data: poll } = await client
     .from("polls")
@@ -248,11 +263,16 @@ async function addComment(id){
 
   const input = document.getElementById(`input-${id}`);
 
-  await client.from("comments").insert([{
+  const { error } = await client.from("comments").insert([{
     poll_id: id,
     user_email: user.email,
     content: input.value
   }]);
+
+  if(error){
+    alert(error.message);
+    return;
+  }
 
   input.value = "";
   loadComments(id);
