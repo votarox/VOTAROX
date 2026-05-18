@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Votarox Pro</title>
+<title>Votarox Ultimate</title>
 
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -14,7 +14,7 @@
 
   <!-- HEADER -->
   <div class="bg-white p-4 rounded-xl shadow mb-4 text-center">
-    <h1 class="text-3xl font-bold text-purple-600">Votarox Pro 🚀</h1>
+    <h1 class="text-3xl font-bold text-purple-600">Votarox 🚀</h1>
 
     <div id="userBox" class="text-sm text-gray-500 mt-2"></div>
 
@@ -73,7 +73,6 @@ async function getUser(){
 
 async function updateUserUI(){
   const user = await getUser();
-
   document.getElementById("userBox").innerHTML =
     user ? `Logged in as <b>${user.email}</b>` : "Guest mode";
 }
@@ -134,6 +133,8 @@ async function loadFeed(){
   render(data || []);
 }
 
+// ================= RENDER POLLS =================
+
 function render(items){
 
   feed.innerHTML = "";
@@ -146,7 +147,7 @@ function render(items){
         <div class="font-bold">${p.question}</div>
         <div class="text-xs text-gray-400 mb-2">by ${p.user_email}</div>
 
-        <div class="flex gap-2">
+        <div class="flex gap-2 mb-2">
 
           <button onclick="vote(${p.id},'up')" class="bg-green-500 text-white px-3 py-1 rounded">
             👍 ${p.upvotes}
@@ -155,6 +156,25 @@ function render(items){
           <button onclick="vote(${p.id},'down')" class="bg-red-500 text-white px-3 py-1 rounded">
             👎 ${p.downvotes}
           </button>
+
+        </div>
+
+        <!-- COMMENTS -->
+        <button onclick="toggleComments(${p.id})" class="text-blue-500 text-sm underline">
+          💬 Comments
+        </button>
+
+        <div id="comments-${p.id}" class="hidden mt-2">
+
+          <input id="input-${p.id}" class="border p-1 w-full rounded mb-1"
+            placeholder="Write comment...">
+
+          <button onclick="addComment(${p.id})"
+            class="bg-blue-500 text-white px-2 py-1 rounded text-sm">
+            Send
+          </button>
+
+          <div id="list-${p.id}" class="mt-2 space-y-1"></div>
 
         </div>
 
@@ -201,17 +221,57 @@ async function vote(id,type){
   loadFeed();
 }
 
-// ================= REALTIME =================
+// ================= COMMENTS =================
 
-client.channel('live-polls')
-.on('postgres_changes',{
-  event:'*',
-  schema:'public',
-  table:'polls'
-},()=>{
-  loadFeed();
-})
-.subscribe();
+function toggleComments(id){
+
+  const box = document.getElementById(`comments-${id}`);
+
+  if(box.classList.contains("hidden")){
+    box.classList.remove("hidden");
+    loadComments(id);
+  } else {
+    box.classList.add("hidden");
+  }
+}
+
+async function addComment(pollId){
+
+  const user = await getUser();
+  if(!user) return alert("Login required");
+
+  const input = document.getElementById(`input-${pollId}`);
+  if(!input.value) return;
+
+  await client.from("comments").insert([{
+    poll_id: pollId,
+    user_email: user.email,
+    content: input.value
+  }]);
+
+  input.value = "";
+  loadComments(pollId);
+}
+
+async function loadComments(pollId){
+
+  const { data } = await client
+    .from("comments")
+    .select("*")
+    .eq("poll_id", pollId)
+    .order("id",{ascending:false});
+
+  const list = document.getElementById(`list-${pollId}`);
+  list.innerHTML = "";
+
+  data.forEach(c=>{
+    list.innerHTML += `
+      <div class="text-sm bg-gray-100 p-1 rounded">
+        <b>${c.user_email}</b>: ${c.content}
+      </div>
+    `;
+  });
+}
 
 // ================= PROFILE =================
 
@@ -250,6 +310,18 @@ async function loadProfile(){
 function closeProfile(){
   document.getElementById("profile").classList.add("hidden");
 }
+
+// ================= REALTIME =================
+
+client.channel('polls-live')
+.on('postgres_changes',{
+  event:'*',
+  schema:'public',
+  table:'polls'
+},()=>{
+  loadFeed();
+})
+.subscribe();
 
 // ================= START =================
 
