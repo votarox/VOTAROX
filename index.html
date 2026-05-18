@@ -129,6 +129,54 @@ function render(polls) {
 }
 
 async function vote(id, type) {
+
+  const userData = await client.auth.getUser();
+  const user = userData.data.user;
+
+  if (!user) {
+    alert("Please login first");
+    return;
+  }
+
+  // check if already voted
+  const { data: existingVotes } = await client
+    .from("votes")
+    .select("*")
+    .eq("poll_id", id)
+    .eq("user_email", user.email);
+
+  if (existingVotes.length > 0) {
+    alert("You already voted!");
+    return;
+  }
+
+  // save vote
+  await client.from("votes").insert([
+    {
+      poll_id: id,
+      user_email: user.email
+    }
+  ]);
+
+  // get current poll
+  const { data } = await client
+    .from("polls")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  // update vote count
+  const updates = type === "up"
+    ? { upvotes: data.upvotes + 1 }
+    : { downvotes: data.downvotes + 1 };
+
+  await client
+    .from("polls")
+    .update(updates)
+    .eq("id", id);
+
+  loadPolls();
+}
   const { data } = await client
     .from("polls")
     .select("*")
