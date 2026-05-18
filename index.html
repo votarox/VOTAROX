@@ -12,38 +12,37 @@
 
 <div class="max-w-2xl mx-auto bg-white rounded-2xl shadow-xl p-6">
 
-  <h1 class="text-3xl font-bold text-center mb-6 text-purple-600">
+  <h1 class="text-3xl font-bold text-center text-purple-600 mb-4">
     Votarox 🗳️
   </h1>
 
-  <!-- USER -->
-  <div id="userBox" class="text-sm text-gray-600 mb-4"></div>
+  <div id="userBox" class="text-sm text-gray-600 mb-4 text-center"></div>
 
   <!-- AUTH -->
-  <div class="grid gap-2 mb-4">
+  <div class="grid gap-2 mb-6">
     <input id="email" class="p-2 border rounded" placeholder="Email">
     <input id="password" type="password" class="p-2 border rounded" placeholder="Password">
 
     <div class="grid grid-cols-2 gap-2">
-      <button onclick="signUp()" class="bg-green-500 text-white p-2 rounded hover:bg-green-600">
+      <button onclick="signUp()" class="bg-green-500 text-white p-2 rounded">
         Sign Up
       </button>
 
-      <button onclick="signIn()" class="bg-blue-500 text-white p-2 rounded hover:bg-blue-600">
+      <button onclick="signIn()" class="bg-blue-500 text-white p-2 rounded">
         Sign In
       </button>
     </div>
 
-    <button onclick="logout()" class="bg-red-500 text-white p-2 rounded hover:bg-red-600">
+    <button onclick="logout()" class="bg-red-500 text-white p-2 rounded">
       Logout
     </button>
   </div>
 
   <!-- CREATE POLL -->
   <div class="mb-6">
-    <input id="question" class="w-full p-2 border rounded mb-2" placeholder="Ask a question...">
+    <input id="question" class="w-full p-2 border rounded mb-2" placeholder="Write your poll...">
 
-    <button onclick="addPoll()" class="w-full bg-purple-500 text-white p-2 rounded hover:bg-purple-600">
+    <button onclick="addPoll()" class="w-full bg-purple-500 text-white p-2 rounded">
       Post Poll
     </button>
   </div>
@@ -55,6 +54,8 @@
 
 <script>
 
+// ================= SUPABASE =================
+
 const supabaseUrl = "https://kxpbgybstgmkmrlgzvpr.supabase.co";
 const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt4cGJneWJzdGdta21ybGd6dnByIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg5NjI4NTIsImV4cCI6MjA5NDUzODg1Mn0.tPQN5mNV4dZXi2rOZsjdg4M-w4e_3epW2Hl_RrhN9zE";
 
@@ -62,21 +63,25 @@ const client = supabase.createClient(supabaseUrl, supabaseKey);
 
 // ================= USER =================
 
-async function updateUserUI() {
+async function getUser() {
   const { data } = await client.auth.getUser();
-  const user = data.user;
+  return data.user;
+}
 
-  document.getElementById("userBox").innerText =
-    user ? `Logged in as: ${user.email}` : "Not logged in";
+async function updateUserUI() {
+  const user = await getUser();
+
+  document.getElementById("userBox").innerHTML =
+    user ? `Logged in as: <b>${user.email}</b>` : "Not logged in";
 }
 
 // ================= AUTH =================
 
 async function signUp() {
-  const email = email.value;
-  const password = password.value;
-
-  const { error } = await client.auth.signUp({ email, password });
+  const { error } = await client.auth.signUp({
+    email: email.value,
+    password: password.value
+  });
 
   if (error) alert(error.message);
   else alert("Check your email!");
@@ -101,22 +106,35 @@ async function logout() {
   loadPolls();
 }
 
-// ================= POLLS =================
+// ================= CREATE POLL (LOGIN REQUIRED) =================
 
 async function addPoll() {
+
+  const user = await getUser();
+
+  if (!user) {
+    alert("Please login first");
+    return;
+  }
+
   if (!question.value) return;
 
-  await client.from("polls").insert([
+  const { error } = await client.from("polls").insert([
     {
       question: question.value,
       upvotes: 0,
-      downvotes: 0
+      downvotes: 0,
+      user_email: user.email
     }
   ]);
+
+  if (error) alert(error.message);
 
   question.value = "";
   loadPolls();
 }
+
+// ================= LOAD POLLS =================
 
 async function loadPolls() {
 
@@ -135,21 +153,20 @@ function render(polls) {
   polls.forEach(p => {
 
     pollsContainer.innerHTML += `
-      <div class="bg-gray-50 border rounded-xl p-4 shadow-sm">
+      <div class="bg-gray-50 border rounded-xl p-4 shadow">
 
-        <h2 class="text-lg font-semibold mb-3">
-          ${p.question}
-        </h2>
+        <p class="font-bold mb-2">${p.question}</p>
+        <p class="text-xs text-gray-500 mb-3">by ${p.user_email || "unknown"}</p>
 
         <div class="flex gap-2">
 
           <button onclick="vote(${p.id}, 'up')"
-            class="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600">
+            class="bg-green-500 text-white px-3 py-1 rounded">
             👍 ${p.upvotes}
           </button>
 
           <button onclick="vote(${p.id}, 'down')"
-            class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600">
+            class="bg-red-500 text-white px-3 py-1 rounded">
             👎 ${p.downvotes}
           </button>
 
@@ -160,14 +177,16 @@ function render(polls) {
   });
 }
 
-// ================= VOTE =================
+// ================= VOTE (ANTI DUPLICATE) =================
 
 async function vote(id, type) {
 
-  const { data } = await client.auth.getUser();
-  const user = data.user;
+  const user = await getUser();
 
-  if (!user) return alert("Login first");
+  if (!user) {
+    alert("Please login first");
+    return;
+  }
 
   const { data: existing } = await client
     .from("votes")
@@ -176,15 +195,21 @@ async function vote(id, type) {
     .eq("user_email", user.email);
 
   if (existing.length > 0) {
-    return alert("You already voted!");
+    alert("You already voted!");
+    return;
   }
 
-  await client.from("votes").insert([
+  const { error: insertError } = await client.from("votes").insert([
     {
       poll_id: id,
       user_email: user.email
     }
   ]);
+
+  if (insertError) {
+    alert("Vote blocked (duplicate protection)");
+    return;
+  }
 
   const { data: poll } = await client
     .from("polls")
@@ -192,11 +217,13 @@ async function vote(id, type) {
     .eq("id", id)
     .single();
 
-  const update = type === "up"
-    ? { upvotes: poll.upvotes + 1 }
-    : { downvotes: poll.downvotes + 1 };
+  const update =
+    type === "up"
+      ? { upvotes: poll.upvotes + 1 }
+      : { downvotes: poll.downvotes + 1 };
 
-  await client.from("polls")
+  await client
+    .from("polls")
     .update(update)
     .eq("id", id);
 
