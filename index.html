@@ -1,8 +1,3 @@
-<!-- =========================================
-VOTAROX PRO V4 ULTIMATE
-FULL SOCIAL PLATFORM
-========================================= -->
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -10,7 +5,7 @@ FULL SOCIAL PLATFORM
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 
-<title>Votarox PRO V4</title>
+<title>Votarox PRO V5 FINAL</title>
 
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -20,11 +15,12 @@ FULL SOCIAL PLATFORM
 body{
   background:#0f172a;
   color:white;
+  overflow-x:hidden;
 }
 
 .glass{
   background:rgba(255,255,255,0.05);
-  backdrop-filter:blur(16px);
+  backdrop-filter:blur(18px);
   border:1px solid rgba(255,255,255,0.08);
 }
 
@@ -35,6 +31,22 @@ body{
 ::-webkit-scrollbar-thumb{
   background:#7c3aed;
   border-radius:20px;
+}
+
+.fade{
+  animation:fade .3s ease;
+}
+
+@keyframes fade{
+  from{
+    opacity:0;
+    transform:translateY(10px);
+  }
+
+  to{
+    opacity:1;
+    transform:translateY(0);
+  }
 }
 
 </style>
@@ -91,8 +103,12 @@ Votarox 🚀
 Votarox PRO
 </div>
 
-<div id="userBox" class="text-xs text-gray-400 mt-1">
+<div
+id="userBox"
+class="text-xs text-gray-400 mt-1">
+
 Guest
+
 </div>
 
 </div>
@@ -111,14 +127,20 @@ Logout
 
 <!-- PROFILE -->
 
-<div id="profileCard" class="glass rounded-3xl p-5 mb-5 hidden">
+<div
+id="profileCard"
+class="glass rounded-3xl p-5 mb-5 hidden fade">
 
-<div class="flex items-center gap-4">
+<div class="flex items-center gap-4 flex-wrap">
+
+<!-- AVATAR -->
+
+<div class="relative">
 
 <img
 id="avatarImage"
 src=""
-class="w-24 h-24 rounded-full object-cover bg-purple-500 hidden">
+class="w-24 h-24 rounded-full object-cover hidden border-2 border-purple-500">
 
 <div
 id="avatar"
@@ -127,6 +149,10 @@ class="w-24 h-24 rounded-full bg-purple-500 flex items-center justify-center tex
 A
 
 </div>
+
+</div>
+
+<!-- INFO -->
 
 <div>
 
@@ -150,15 +176,19 @@ No bio yet
 
 </div>
 
+<!-- EDIT -->
+
 <div class="grid gap-3 mt-5">
 
 <input
 id="usernameInput"
+maxlength="20"
 class="w-full p-3 rounded-xl bg-white/10 border border-white/10 outline-none"
 placeholder="Username">
 
 <textarea
 id="bioInput"
+maxlength="150"
 rows="2"
 class="w-full p-3 rounded-xl bg-white/10 border border-white/10 outline-none resize-none"
 placeholder="Bio"></textarea>
@@ -166,12 +196,12 @@ placeholder="Bio"></textarea>
 <input
 type="file"
 id="avatarFile"
-accept="image/*"
+accept="image/png,image/jpeg,image/jpg,image/webp,image/gif"
 class="w-full p-3 rounded-xl bg-white/10 border border-white/10">
 
 <button
 onclick="saveProfile()"
-class="bg-purple-500 hover:bg-purple-600 px-4 py-3 rounded-xl font-bold">
+class="bg-purple-500 hover:bg-purple-600 px-4 py-3 rounded-xl font-bold transition">
 
 Save Profile
 
@@ -246,7 +276,7 @@ class="text-sm text-gray-400">
 <button
 id="postBtn"
 onclick="addPoll()"
-class="bg-purple-500 hover:bg-purple-600 px-6 py-3 rounded-2xl font-bold">
+class="bg-purple-500 hover:bg-purple-600 px-6 py-3 rounded-2xl font-bold transition">
 
 Post 🚀
 
@@ -258,7 +288,9 @@ Post 🚀
 
 <!-- FEED -->
 
-<div id="feed" class="space-y-4"></div>
+<div
+id="feed"
+class="space-y-4"></div>
 
 </main>
 
@@ -270,8 +302,11 @@ Post 🚀
 // SUPABASE
 // =========================================
 
-const supabaseUrl = "https://kxpbgybstgmkmrlgzvpr.supabase.co";
-const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt4cGJneWJzdGdta21ybGd6dnByIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg5NjI4NTIsImV4cCI6MjA5NDUzODg1Mn0.tPQN5mNV4dZXi2rOZsjdg4M-w4e_3epW2Hl_RrhN9zE";
+const supabaseUrl =
+"https://kxpbgybstgmkmrlgzvpr.supabase.co";
+
+const supabaseKey =
+"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt4cGJneWJzdGdta21ybGd6dnByIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg5NjI4NTIsImV4cCI6MjA5NDUzODg1Mn0.tPQN5mNV4dZXi2rOZsjdg4M-w4e_3epW2Hl_RrhN9zE";
 
 const client =
 supabase.createClient(
@@ -300,6 +335,65 @@ const { data } =
 await client.auth.getUser();
 
 return data.user;
+
+}
+
+// =========================================
+// SAFE FILE NAME
+// =========================================
+
+function generateSafeFileName(file){
+
+const extension =
+file.name
+.split(".")
+.pop()
+.toLowerCase();
+
+const random =
+Math.random()
+.toString(36)
+.substring(2,10);
+
+const timestamp =
+Date.now();
+
+return `${timestamp}_${random}.${extension}`;
+
+}
+
+// =========================================
+// VALIDATE IMAGE
+// =========================================
+
+function validateImage(file){
+
+const allowed = [
+"image/png",
+"image/jpeg",
+"image/jpg",
+"image/webp",
+"image/gif"
+];
+
+if(!allowed.includes(file.type)){
+
+alert("Unsupported image");
+
+return false;
+}
+
+const maxSize =
+10 * 1024 * 1024;
+
+if(file.size > maxSize){
+
+alert("Image too large");
+
+return false;
+}
+
+return true;
 
 }
 
@@ -403,15 +497,29 @@ avatarFile.files[0];
 
 if(file){
 
-const fileName =
-`${Date.now()}_${file.name}`;
+if(!validateImage(file)){
+
+return;
+}
+
+const safeFileName =
+generateSafeFileName(file);
 
 const { error: uploadError } =
 await client.storage
 .from("avatars")
-.upload(fileName,file);
+.upload(
+safeFileName,
+file,
+{
+cacheControl:"3600",
+upsert:true
+}
+);
 
 if(uploadError){
+
+console.error(uploadError);
 
 alert(uploadError.message);
 
@@ -421,17 +529,23 @@ return;
 const { data } =
 client.storage
 .from("avatars")
-.getPublicUrl(fileName);
+.getPublicUrl(safeFileName);
 
 avatarUrl =
 data.publicUrl;
+
 }
 
+const { error:updateError } =
 await client
 .from("profiles")
 .update({
-username:usernameInput.value,
-bio:bioInput.value,
+username:
+usernameInput.value.trim(),
+
+bio:
+bioInput.value.trim(),
+
 avatar:
 avatarUrl ||
 avatarImage.src ||
@@ -439,7 +553,14 @@ avatarImage.src ||
 })
 .eq("email", user.email);
 
-loadProfile();
+if(updateError){
+
+alert(updateError.message);
+
+return;
+}
+
+await loadProfile();
 
 alert("Profile updated");
 
@@ -543,7 +664,7 @@ counter.innerText = "0 / 300";
 }
 
 // =========================================
-// LOAD POSTS
+// LOAD FEED
 // =========================================
 
 async function loadFeed(){
@@ -571,7 +692,7 @@ items.forEach(p=>{
 feed.innerHTML += `
 
 <div
-class="glass rounded-3xl p-5 hover:scale-[1.01] transition">
+class="glass rounded-3xl p-5 hover:scale-[1.01] transition fade">
 
 <div class="flex items-center gap-3 mb-4">
 
@@ -579,7 +700,7 @@ ${p.avatar
 ? `
 <img
 src="${p.avatar}"
-class="w-12 h-12 rounded-full object-cover">
+class="w-12 h-12 rounded-full object-cover border border-purple-500">
 `
 : `
 <div
@@ -678,7 +799,7 @@ class="mt-3 space-y-2"></div>
 }
 
 // =========================================
-// SAFE VOTE
+// VOTE
 // =========================================
 
 async function vote(id,type){
