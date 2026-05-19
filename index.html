@@ -1,10 +1,16 @@
+<!-- =========================================
+VOTAROX PRO V4 ULTIMATE
+FULL SOCIAL PLATFORM
+========================================= -->
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
+
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 
-<title>Votarox PRO V3</title>
+<title>Votarox PRO V4</title>
 
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -39,749 +45,856 @@ body{
 
 <div class="flex min-h-screen">
 
-  <!-- SIDEBAR -->
+<!-- SIDEBAR -->
 
-  <aside class="hidden md:flex w-64 glass fixed h-full p-6 flex-col">
+<aside class="hidden md:flex w-64 glass fixed h-full p-6 flex-col">
 
-    <div class="text-3xl font-black text-purple-400 mb-10">
-      Votarox 🚀
-    </div>
+<div class="text-3xl font-black text-purple-400 mb-10">
+Votarox 🚀
+</div>
 
-    <div class="space-y-3">
+<div class="space-y-3">
 
-      <button class="w-full text-left p-3 rounded-xl hover:bg-white/10 transition">
-        🏠 Home
-      </button>
+<button class="w-full text-left p-3 rounded-xl hover:bg-white/10 transition">
+🏠 Home
+</button>
 
-      <button class="w-full text-left p-3 rounded-xl hover:bg-white/10 transition">
-        👤 Profile
-      </button>
+<button class="w-full text-left p-3 rounded-xl hover:bg-white/10 transition">
+👤 Profile
+</button>
 
-      <button class="w-full text-left p-3 rounded-xl hover:bg-white/10 transition">
-        🔥 Trending
-      </button>
+<button class="w-full text-left p-3 rounded-xl hover:bg-white/10 transition">
+🔥 Trending
+</button>
 
-      <button class="w-full text-left p-3 rounded-xl hover:bg-white/10 transition">
-        🔔 Notifications
-      </button>
+<button class="w-full text-left p-3 rounded-xl hover:bg-white/10 transition">
+🔔 Notifications
+</button>
 
-    </div>
+</div>
 
-  </aside>
+</aside>
 
-  <!-- MAIN -->
+<!-- MAIN -->
 
-  <main class="flex-1 md:ml-64 max-w-3xl mx-auto p-4 w-full">
+<main class="flex-1 md:ml-64 max-w-3xl mx-auto p-4 w-full">
 
-    <!-- TOPBAR -->
+<!-- TOPBAR -->
 
-    <div class="glass rounded-3xl p-5 mb-5 sticky top-3 z-50">
+<div class="glass rounded-3xl p-5 mb-5 sticky top-3 z-50">
 
-      <div class="flex items-center justify-between">
+<div class="flex items-center justify-between">
 
-        <div>
+<div>
 
-          <div class="text-2xl font-black text-purple-400">
-            Votarox PRO
-          </div>
+<div class="text-2xl font-black text-purple-400">
+Votarox PRO
+</div>
 
-          <div
-            id="userBox"
-            class="text-xs text-gray-400 mt-1">
+<div id="userBox" class="text-xs text-gray-400 mt-1">
+Guest
+</div>
 
-            Guest
+</div>
 
-          </div>
+<button
+onclick="logout()"
+class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded-xl transition">
 
-        </div>
+Logout
 
-        <button
-          onclick="logout()"
-          class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded-xl transition">
+</button>
 
-          Logout
+</div>
 
-        </button>
+</div>
 
-      </div>
+<!-- PROFILE -->
 
-    </div>
+<div id="profileCard" class="glass rounded-3xl p-5 mb-5 hidden">
 
-    <!-- PROFILE CARD -->
+<div class="flex items-center gap-4">
 
-    <div
-      id="profileCard"
-      class="glass rounded-3xl p-5 mb-5 hidden">
+<img
+id="avatarImage"
+src=""
+class="w-24 h-24 rounded-full object-cover bg-purple-500 hidden">
 
-      <div class="flex items-center gap-4">
+<div
+id="avatar"
+class="w-24 h-24 rounded-full bg-purple-500 flex items-center justify-center text-3xl font-black">
 
-        <div
-          id="avatar"
-          class="w-20 h-20 rounded-full bg-purple-500 flex items-center justify-center text-3xl font-black">
+A
 
-          A
+</div>
 
-        </div>
+<div>
 
-        <div>
+<div
+id="profileUsername"
+class="text-2xl font-black">
 
-          <div
-            id="profileUsername"
-            class="text-2xl font-black">
+@user
 
-            @user
+</div>
 
-          </div>
+<div
+id="profileBio"
+class="text-gray-400 mt-1">
 
-          <div
-            id="profileBio"
-            class="text-gray-400 mt-1">
+No bio yet
 
-            No bio yet
+</div>
 
-          </div>
+</div>
 
-        </div>
+</div>
 
-      </div>
+<div class="grid gap-3 mt-5">
 
-      <!-- EDIT PROFILE -->
+<input
+id="usernameInput"
+class="w-full p-3 rounded-xl bg-white/10 border border-white/10 outline-none"
+placeholder="Username">
 
-      <div class="mt-5 grid gap-3">
+<textarea
+id="bioInput"
+rows="2"
+class="w-full p-3 rounded-xl bg-white/10 border border-white/10 outline-none resize-none"
+placeholder="Bio"></textarea>
 
-        <input
-          id="usernameInput"
-          class="w-full p-3 rounded-xl bg-white/10 border border-white/10 outline-none"
-          placeholder="Username">
+<input
+type="file"
+id="avatarFile"
+accept="image/*"
+class="w-full p-3 rounded-xl bg-white/10 border border-white/10">
 
-        <textarea
-          id="bioInput"
-          rows="2"
-          class="w-full p-3 rounded-xl bg-white/10 border border-white/10 outline-none resize-none"
-          placeholder="Bio"></textarea>
+<button
+onclick="saveProfile()"
+class="bg-purple-500 hover:bg-purple-600 px-4 py-3 rounded-xl font-bold">
 
-        <button
-          onclick="saveProfile()"
-          class="bg-purple-500 hover:bg-purple-600 px-4 py-3 rounded-xl font-bold">
+Save Profile
 
-          Save Profile
+</button>
 
-        </button>
+</div>
 
-      </div>
+</div>
 
-    </div>
+<!-- AUTH -->
 
-    <!-- AUTH -->
+<div class="glass rounded-3xl p-5 mb-5">
 
-    <div class="glass rounded-3xl p-5 mb-5">
+<div class="font-bold text-lg mb-4">
+Login / Register
+</div>
 
-      <div class="font-bold text-lg mb-4">
-        Login / Register
-      </div>
+<input
+id="email"
+class="w-full p-3 rounded-xl bg-white/10 border border-white/10 mb-3 outline-none"
+placeholder="Email">
 
-      <input
-        id="email"
-        class="w-full p-3 rounded-xl bg-white/10 border border-white/10 mb-3 outline-none"
-        placeholder="Email">
+<input
+id="password"
+type="password"
+class="w-full p-3 rounded-xl bg-white/10 border border-white/10 mb-3 outline-none"
+placeholder="Password">
 
-      <input
-        id="password"
-        type="password"
-        class="w-full p-3 rounded-xl bg-white/10 border border-white/10 mb-3 outline-none"
-        placeholder="Password">
+<div class="grid grid-cols-2 gap-3">
 
-      <div class="grid grid-cols-2 gap-3">
+<button
+onclick="signUp()"
+class="bg-green-500 hover:bg-green-600 p-3 rounded-xl font-bold">
 
-        <button
-          onclick="signUp()"
-          class="bg-green-500 hover:bg-green-600 p-3 rounded-xl font-bold">
+Sign Up
 
-          Sign Up
+</button>
 
-        </button>
+<button
+onclick="signIn()"
+class="bg-purple-500 hover:bg-purple-600 p-3 rounded-xl font-bold">
 
-        <button
-          onclick="signIn()"
-          class="bg-purple-500 hover:bg-purple-600 p-3 rounded-xl font-bold">
+Sign In
 
-          Sign In
+</button>
 
-        </button>
+</div>
 
-      </div>
+</div>
 
-    </div>
+<!-- CREATE POST -->
 
-    <!-- CREATE POST -->
+<div class="glass rounded-3xl p-5 mb-5">
 
-    <div class="glass rounded-3xl p-5 mb-5">
+<textarea
+id="question"
+rows="3"
+maxlength="300"
+class="w-full p-4 rounded-2xl bg-white/10 border border-white/10 outline-none resize-none"
+placeholder="Share something with the world..."></textarea>
 
-      <textarea
-        id="question"
-        rows="3"
-        maxlength="300"
-        class="w-full p-4 rounded-2xl bg-white/10 border border-white/10 outline-none resize-none"
-        placeholder="Share something with the world..."></textarea>
+<div class="flex items-center justify-between mt-3">
 
-      <div class="flex items-center justify-between mt-3">
+<div
+id="counter"
+class="text-sm text-gray-400">
 
-        <div
-          id="counter"
-          class="text-sm text-gray-400">
+0 / 300
 
-          0 / 300
+</div>
 
-        </div>
+<button
+id="postBtn"
+onclick="addPoll()"
+class="bg-purple-500 hover:bg-purple-600 px-6 py-3 rounded-2xl font-bold">
 
-        <button
-          id="postBtn"
-          onclick="addPoll()"
-          class="bg-purple-500 hover:bg-purple-600 px-6 py-3 rounded-2xl font-bold">
+Post 🚀
 
-          Post 🚀
+</button>
 
-        </button>
+</div>
 
-      </div>
+</div>
 
-    </div>
+<!-- FEED -->
 
-    <!-- FEED -->
+<div id="feed" class="space-y-4"></div>
 
-    <div
-      id="feed"
-      class="space-y-4"></div>
-
-  </main>
+</main>
 
 </div>
 
 <script>
 
-// ================= SUPABASE =================
+// =========================================
+// SUPABASE
+// =========================================
 
 const supabaseUrl = "https://kxpbgybstgmkmrlgzvpr.supabase.co";
 const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt4cGJneWJzdGdta21ybGd6dnByIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg5NjI4NTIsImV4cCI6MjA5NDUzODg1Mn0.tPQN5mNV4dZXi2rOZsjdg4M-w4e_3epW2Hl_RrhN9zE";
 
-const client = supabase.createClient(
-  supabaseUrl,
-  supabaseKey
+const client =
+supabase.createClient(
+supabaseUrl,
+supabaseKey
 );
 
-// ================= COUNTER =================
+// =========================================
+// COUNTER
+// =========================================
 
 question.addEventListener("input",()=>{
 
-  counter.innerText =
-    `${question.value.length} / 300`;
+counter.innerText =
+`${question.value.length} / 300`;
+
 });
 
-// ================= USER =================
+// =========================================
+// USER
+// =========================================
 
 async function getUser(){
 
-  const { data } =
-    await client.auth.getUser();
+const { data } =
+await client.auth.getUser();
 
-  return data.user;
+return data.user;
+
 }
 
-// ================= PROFILE =================
+// =========================================
+// PROFILE
+// =========================================
 
 async function loadProfile(){
 
-  const user =
-    await getUser();
+const user =
+await getUser();
 
-  if(!user) return;
+if(!user) return;
 
-  const { data } =
-    await client
-    .from("profiles")
-    .select("*")
-    .eq("email", user.email)
-    .single();
+const { data } =
+await client
+.from("profiles")
+.select("*")
+.eq("email", user.email)
+.single();
 
-  // CREATE AUTO PROFILE
+if(!data){
 
-  if(!data){
+const username =
+user.email.split("@")[0];
 
-    const username =
-      user.email.split("@")[0];
+await client
+.from("profiles")
+.insert([{
+email:user.email,
+username,
+bio:"New Votarox user",
+avatar:""
+}]);
 
-    await client
-      .from("profiles")
-      .insert([{
-        email:user.email,
-        username,
-        bio:"New Votarox user",
-        avatar:username.charAt(0).toUpperCase()
-      }]);
+return loadProfile();
 
-    return loadProfile();
-  }
-
-  profileCard.classList.remove("hidden");
-
-  profileUsername.innerText =
-    `@${data.username}`;
-
-  profileBio.innerText =
-    data.bio;
-
-  avatar.innerText =
-    data.avatar || "U";
-
-  usernameInput.value =
-    data.username;
-
-  bioInput.value =
-    data.bio;
-
-  userBox.innerText =
-    `@${data.username}`;
 }
+
+profileCard.classList.remove("hidden");
+
+profileUsername.innerText =
+`@${data.username}`;
+
+profileBio.innerText =
+data.bio;
+
+usernameInput.value =
+data.username;
+
+bioInput.value =
+data.bio;
+
+userBox.innerText =
+`@${data.username}`;
+
+if(data.avatar){
+
+avatar.style.display = "none";
+
+avatarImage.src =
+data.avatar;
+
+avatarImage.classList.remove("hidden");
+
+} else {
+
+avatarImage.classList.add("hidden");
+
+avatar.style.display = "flex";
+
+avatar.innerText =
+data.username
+.charAt(0)
+.toUpperCase();
+
+}
+
+}
+
+// =========================================
+// SAVE PROFILE
+// =========================================
 
 async function saveProfile(){
 
-  const user =
-    await getUser();
+const user =
+await getUser();
 
-  if(!user){
+if(!user){
 
-    alert("Login required");
+alert("Login required");
 
-    return;
-  }
-
-  await client
-    .from("profiles")
-    .update({
-      username:usernameInput.value,
-      bio:bioInput.value,
-      avatar:usernameInput.value
-        .charAt(0)
-        .toUpperCase()
-    })
-    .eq("email", user.email);
-
-  loadProfile();
-
-  alert("Profile updated");
+return;
 }
 
-// ================= AUTH =================
+let avatarUrl = null;
+
+const file =
+avatarFile.files[0];
+
+if(file){
+
+const fileName =
+`${Date.now()}_${file.name}`;
+
+const { error: uploadError } =
+await client.storage
+.from("avatars")
+.upload(fileName,file);
+
+if(uploadError){
+
+alert(uploadError.message);
+
+return;
+}
+
+const { data } =
+client.storage
+.from("avatars")
+.getPublicUrl(fileName);
+
+avatarUrl =
+data.publicUrl;
+}
+
+await client
+.from("profiles")
+.update({
+username:usernameInput.value,
+bio:bioInput.value,
+avatar:
+avatarUrl ||
+avatarImage.src ||
+""
+})
+.eq("email", user.email);
+
+loadProfile();
+
+alert("Profile updated");
+
+}
+
+// =========================================
+// AUTH
+// =========================================
 
 async function signUp(){
 
-  await client.auth.signUp({
-    email: email.value,
-    password: password.value
-  });
+await client.auth.signUp({
+email: email.value,
+password: password.value
+});
 
-  alert("Check your email");
+alert("Check your email");
+
 }
 
 async function signIn(){
 
-  await client.auth.signInWithPassword({
-    email: email.value,
-    password: password.value
-  });
+await client.auth.signInWithPassword({
+email: email.value,
+password: password.value
+});
 
-  loadProfile();
+loadProfile();
+
 }
 
 async function logout(){
 
-  await client.auth.signOut();
+await client.auth.signOut();
 
-  location.reload();
+location.reload();
+
 }
 
-// ================= CREATE POST =================
+// =========================================
+// CREATE POST
+// =========================================
 
 async function addPoll(){
 
-  const user =
-    await getUser();
+const user =
+await getUser();
 
-  if(!user){
+if(!user){
 
-    alert("Login required");
+alert("Login required");
 
-    return;
-  }
-
-  if(question.value.trim().length < 3){
-
-    alert("Post too short");
-
-    return;
-  }
-
-  postBtn.disabled = true;
-
-  postBtn.innerText = "Posting...";
-
-  const { data: profile } =
-    await client
-    .from("profiles")
-    .select("*")
-    .eq("email", user.email)
-    .single();
-
-  const { error } =
-    await client
-    .from("polls")
-    .insert([{
-      question: question.value,
-      upvotes:0,
-      downvotes:0,
-      user_email:user.email,
-      username:profile.username,
-      avatar:profile.avatar
-    }]);
-
-  postBtn.disabled = false;
-
-  postBtn.innerText = "Post 🚀";
-
-  if(error){
-
-    alert(error.message);
-
-    return;
-  }
-
-  question.value = "";
-
-  counter.innerText = "0 / 300";
+return;
 }
 
-// ================= LOAD POSTS =================
+if(question.value.trim().length < 3){
+
+alert("Post too short");
+
+return;
+}
+
+postBtn.disabled = true;
+
+postBtn.innerText = "Posting...";
+
+const { data: profile } =
+await client
+.from("profiles")
+.select("*")
+.eq("email", user.email)
+.single();
+
+const { error } =
+await client
+.from("polls")
+.insert([{
+question: question.value,
+upvotes:0,
+downvotes:0,
+user_email:user.email,
+username:profile.username,
+avatar:profile.avatar
+}]);
+
+postBtn.disabled = false;
+
+postBtn.innerText = "Post 🚀";
+
+if(error){
+
+alert(error.message);
+
+return;
+}
+
+question.value = "";
+
+counter.innerText = "0 / 300";
+
+}
+
+// =========================================
+// LOAD POSTS
+// =========================================
 
 async function loadFeed(){
 
-  const { data } =
-    await client
-    .from("polls")
-    .select("*")
-    .order("id",{ascending:false});
+const { data } =
+await client
+.from("polls")
+.select("*")
+.order("id",{ascending:false});
 
-  render(data || []);
+render(data || []);
+
 }
 
-// ================= RENDER =================
+// =========================================
+// RENDER
+// =========================================
 
 function render(items){
 
-  feed.innerHTML = "";
+feed.innerHTML = "";
 
-  items.forEach(p=>{
+items.forEach(p=>{
 
-    feed.innerHTML += `
+feed.innerHTML += `
 
-      <div
-        class="glass rounded-3xl p-5 hover:scale-[1.01] transition">
+<div
+class="glass rounded-3xl p-5 hover:scale-[1.01] transition">
 
-        <!-- USER -->
+<div class="flex items-center gap-3 mb-4">
 
-        <div class="flex items-center gap-3 mb-4">
+${p.avatar
+? `
+<img
+src="${p.avatar}"
+class="w-12 h-12 rounded-full object-cover">
+`
+: `
+<div
+class="w-12 h-12 rounded-full bg-purple-500 flex items-center justify-center text-xl font-bold">
 
-          <div
-            class="w-12 h-12 rounded-full bg-purple-500 flex items-center justify-center text-xl font-bold">
+${(p.username || "U")
+.charAt(0)
+.toUpperCase()}
 
-            ${p.avatar || "U"}
-
-          </div>
-
-          <div>
-
-            <div class="font-bold">
-
-              @${p.username || "user"}
-
-            </div>
-
-            <div class="text-xs text-gray-400">
-
-              ${p.user_email}
-
-            </div>
-
-          </div>
-
-        </div>
-
-        <!-- CONTENT -->
-
-        <div class="text-lg leading-relaxed mb-4">
-
-          ${p.question}
-
-        </div>
-
-        <!-- ACTIONS -->
-
-        <div class="flex gap-3 flex-wrap">
-
-          <button
-            onclick="vote(${p.id}, 'up')"
-            class="bg-green-500/20 hover:bg-green-500 px-4 py-2 rounded-xl transition">
-
-            👍 ${p.upvotes || 0}
-
-          </button>
-
-          <button
-            onclick="vote(${p.id}, 'down')"
-            class="bg-red-500/20 hover:bg-red-500 px-4 py-2 rounded-xl transition">
-
-            👎 ${p.downvotes || 0}
-
-          </button>
-
-          <button
-            onclick="toggleComments(${p.id})"
-            class="bg-blue-500/20 hover:bg-blue-500 px-4 py-2 rounded-xl transition">
-
-            💬 Comments
-
-          </button>
-
-        </div>
-
-        <!-- COMMENTS -->
-
-        <div
-          id="comments-${p.id}"
-          class="hidden mt-4">
-
-          <input
-            id="input-${p.id}"
-            maxlength="200"
-            class="w-full p-3 rounded-xl bg-white/10 border border-white/10 mb-2 outline-none"
-            placeholder="Write comment">
-
-          <button
-            onclick="addComment(${p.id})"
-            class="bg-purple-500 hover:bg-purple-600 px-4 py-2 rounded-xl">
-
-            Send
-
-          </button>
-
-          <div
-            id="list-${p.id}"
-            class="mt-3 space-y-2"></div>
-
-        </div>
-
-      </div>
-
-    `;
-  });
+</div>
+`
 }
 
-// ================= SAFE VOTE =================
+<div>
+
+<div class="font-bold">
+
+@${p.username || "user"}
+
+</div>
+
+<div class="text-xs text-gray-400">
+
+${p.user_email}
+
+</div>
+
+</div>
+
+</div>
+
+<div class="text-lg leading-relaxed mb-4">
+
+${p.question}
+
+</div>
+
+<div class="flex gap-3 flex-wrap">
+
+<button
+onclick="vote(${p.id}, 'up')"
+class="bg-green-500/20 hover:bg-green-500 px-4 py-2 rounded-xl transition">
+
+👍 ${p.upvotes || 0}
+
+</button>
+
+<button
+onclick="vote(${p.id}, 'down')"
+class="bg-red-500/20 hover:bg-red-500 px-4 py-2 rounded-xl transition">
+
+👎 ${p.downvotes || 0}
+
+</button>
+
+<button
+onclick="toggleComments(${p.id})"
+class="bg-blue-500/20 hover:bg-blue-500 px-4 py-2 rounded-xl transition">
+
+💬 Comments
+
+</button>
+
+</div>
+
+<div
+id="comments-${p.id}"
+class="hidden mt-4">
+
+<input
+id="input-${p.id}"
+maxlength="200"
+class="w-full p-3 rounded-xl bg-white/10 border border-white/10 mb-2 outline-none"
+placeholder="Write comment">
+
+<button
+onclick="addComment(${p.id})"
+class="bg-purple-500 hover:bg-purple-600 px-4 py-2 rounded-xl">
+
+Send
+
+</button>
+
+<div
+id="list-${p.id}"
+class="mt-3 space-y-2"></div>
+
+</div>
+
+</div>
+
+`;
+
+});
+
+}
+
+// =========================================
+// SAFE VOTE
+// =========================================
 
 async function vote(id,type){
 
-  const user =
-    await getUser();
+const user =
+await getUser();
 
-  if(!user){
+if(!user){
 
-    alert("Login required");
+alert("Login required");
 
-    return;
-  }
-
-  const voteKey =
-    `vote_${id}_${user.email}`;
-
-  if(localStorage.getItem(voteKey)){
-
-    alert("You already voted");
-
-    return;
-  }
-
-  const { data: poll } =
-    await client
-    .from("polls")
-    .select("*")
-    .eq("id",id)
-    .single();
-
-  let updateData = {};
-
-  if(type === "up"){
-
-    updateData = {
-      upvotes:(poll.upvotes || 0)+1
-    };
-
-  } else {
-
-    updateData = {
-      downvotes:(poll.downvotes || 0)+1
-    };
-  }
-
-  await client
-    .from("polls")
-    .update(updateData)
-    .eq("id",id);
-
-  localStorage.setItem(voteKey,"true");
+return;
 }
 
-// ================= COMMENTS =================
+const voteKey =
+`vote_${id}_${user.email}`;
+
+if(localStorage.getItem(voteKey)){
+
+alert("You already voted");
+
+return;
+}
+
+const { data: poll } =
+await client
+.from("polls")
+.select("*")
+.eq("id",id)
+.single();
+
+let updateData = {};
+
+if(type === "up"){
+
+updateData = {
+upvotes:(poll.upvotes || 0)+1
+};
+
+} else {
+
+updateData = {
+downvotes:(poll.downvotes || 0)+1
+};
+
+}
+
+await client
+.from("polls")
+.update(updateData)
+.eq("id",id);
+
+localStorage.setItem(voteKey,"true");
+
+}
+
+// =========================================
+// COMMENTS
+// =========================================
 
 function toggleComments(id){
 
-  const box =
-    document.getElementById(
-      `comments-${id}`
-    );
+const box =
+document.getElementById(
+`comments-${id}`
+);
 
-  box.classList.toggle("hidden");
+box.classList.toggle("hidden");
 
-  if(!box.classList.contains("hidden")){
+if(!box.classList.contains("hidden")){
 
-    loadComments(id);
-  }
+loadComments(id);
+
+}
+
 }
 
 async function addComment(id){
 
-  const user =
-    await getUser();
+const user =
+await getUser();
 
-  if(!user){
+if(!user){
 
-    alert("Login required");
+alert("Login required");
 
-    return;
-  }
+return;
+}
 
-  const input =
-    document.getElementById(
-      `input-${id}`
-    );
+const input =
+document.getElementById(
+`input-${id}`
+);
 
-  if(input.value.trim().length < 1){
+if(input.value.trim().length < 1){
 
-    alert("Comment empty");
+alert("Comment empty");
 
-    return;
-  }
+return;
+}
 
-  const { error } =
-    await client
-    .from("comments")
-    .insert([{
-      poll_id:id,
-      user_email:user.email,
-      content:input.value
-    }]);
+const { error } =
+await client
+.from("comments")
+.insert([{
+poll_id:id,
+user_email:user.email,
+content:input.value
+}]);
 
-  if(error){
+if(error){
 
-    alert(error.message);
+alert(error.message);
 
-    return;
-  }
+return;
+}
 
-  input.value = "";
+input.value = "";
+
 }
 
 async function loadComments(id){
 
-  const { data } =
-    await client
-    .from("comments")
-    .select("*")
-    .eq("poll_id",id)
-    .order("id",{ascending:false});
+const { data } =
+await client
+.from("comments")
+.select("*")
+.eq("poll_id",id)
+.order("id",{ascending:false});
 
-  const list =
-    document.getElementById(
-      `list-${id}`
-    );
+const list =
+document.getElementById(
+`list-${id}`
+);
 
-  list.innerHTML = "";
+list.innerHTML = "";
 
-  data.forEach(c=>{
+data.forEach(c=>{
 
-    list.innerHTML += `
+list.innerHTML += `
 
-      <div class="bg-white/10 rounded-xl p-3 text-sm">
+<div class="bg-white/10 rounded-xl p-3 text-sm">
 
-        <span class="font-bold">
+<span class="font-bold">
 
-          ${c.user_email}
+${c.user_email}
 
-        </span>
+</span>
 
-        : ${c.content}
+: ${c.content}
 
-      </div>
+</div>
 
-    `;
-  });
+`;
+
+});
+
 }
 
-// ================= REALTIME POSTS =================
+// =========================================
+// REALTIME POSTS
+// =========================================
 
 client
 .channel("realtime-posts")
 .on(
-  "postgres_changes",
-  {
-    event:"*",
-    schema:"public",
-    table:"polls"
-  },
-  ()=>{
+"postgres_changes",
+{
+event:"*",
+schema:"public",
+table:"polls"
+},
+()=>{
 
-    loadFeed();
-  }
+loadFeed();
+
+}
 )
 .subscribe();
 
-// ================= REALTIME COMMENTS =================
+// =========================================
+// REALTIME COMMENTS
+// =========================================
 
 client
 .channel("realtime-comments")
 .on(
-  "postgres_changes",
-  {
-    event:"*",
-    schema:"public",
-    table:"comments"
-  },
-  ()=>{
+"postgres_changes",
+{
+event:"*",
+schema:"public",
+table:"comments"
+},
+()=>{
 
-    document.querySelectorAll("[id^='comments-']")
-      .forEach(async box=>{
+document.querySelectorAll("[id^='comments-']")
+.forEach(async box=>{
 
-        if(!box.classList.contains("hidden")){
+if(!box.classList.contains("hidden")){
 
-          const id =
-            box.id.split("-")[1];
+const id =
+box.id.split("-")[1];
 
-          loadComments(id);
-        }
-      });
-  }
+loadComments(id);
+
+}
+
+});
+
+}
 )
 .subscribe();
 
-// ================= START =================
+// =========================================
+// START
+// =========================================
 
 loadProfile();
 
