@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
+<meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 
-<title>Votarox PRO V2 REALTIME</title>
+<title>Votarox PRO V3</title>
 
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -54,15 +54,15 @@ body{
       </button>
 
       <button class="w-full text-left p-3 rounded-xl hover:bg-white/10 transition">
+        👤 Profile
+      </button>
+
+      <button class="w-full text-left p-3 rounded-xl hover:bg-white/10 transition">
         🔥 Trending
       </button>
 
       <button class="w-full text-left p-3 rounded-xl hover:bg-white/10 transition">
         🔔 Notifications
-      </button>
-
-      <button class="w-full text-left p-3 rounded-xl hover:bg-white/10 transition">
-        👤 Profile
       </button>
 
     </div>
@@ -73,7 +73,7 @@ body{
 
   <main class="flex-1 md:ml-64 max-w-3xl mx-auto p-4 w-full">
 
-    <!-- TOP -->
+    <!-- TOPBAR -->
 
     <div class="glass rounded-3xl p-5 mb-5 sticky top-3 z-50">
 
@@ -88,7 +88,9 @@ body{
           <div
             id="userBox"
             class="text-xs text-gray-400 mt-1">
+
             Guest
+
           </div>
 
         </div>
@@ -98,6 +100,71 @@ body{
           class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded-xl transition">
 
           Logout
+
+        </button>
+
+      </div>
+
+    </div>
+
+    <!-- PROFILE CARD -->
+
+    <div
+      id="profileCard"
+      class="glass rounded-3xl p-5 mb-5 hidden">
+
+      <div class="flex items-center gap-4">
+
+        <div
+          id="avatar"
+          class="w-20 h-20 rounded-full bg-purple-500 flex items-center justify-center text-3xl font-black">
+
+          A
+
+        </div>
+
+        <div>
+
+          <div
+            id="profileUsername"
+            class="text-2xl font-black">
+
+            @user
+
+          </div>
+
+          <div
+            id="profileBio"
+            class="text-gray-400 mt-1">
+
+            No bio yet
+
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- EDIT PROFILE -->
+
+      <div class="mt-5 grid gap-3">
+
+        <input
+          id="usernameInput"
+          class="w-full p-3 rounded-xl bg-white/10 border border-white/10 outline-none"
+          placeholder="Username">
+
+        <textarea
+          id="bioInput"
+          rows="2"
+          class="w-full p-3 rounded-xl bg-white/10 border border-white/10 outline-none resize-none"
+          placeholder="Bio"></textarea>
+
+        <button
+          onclick="saveProfile()"
+          class="bg-purple-500 hover:bg-purple-600 px-4 py-3 rounded-xl font-bold">
+
+          Save Profile
 
         </button>
 
@@ -146,7 +213,7 @@ body{
 
     </div>
 
-    <!-- CREATE -->
+    <!-- CREATE POST -->
 
     <div class="glass rounded-3xl p-5 mb-5">
 
@@ -162,13 +229,15 @@ body{
         <div
           id="counter"
           class="text-sm text-gray-400">
+
           0 / 300
+
         </div>
 
         <button
           id="postBtn"
           onclick="addPoll()"
-          class="bg-purple-500 hover:bg-purple-600 px-6 py-3 rounded-2xl font-bold transition">
+          class="bg-purple-500 hover:bg-purple-600 px-6 py-3 rounded-2xl font-bold">
 
           Post 🚀
 
@@ -218,15 +287,88 @@ async function getUser(){
   return data.user;
 }
 
-async function updateUI(){
+// ================= PROFILE =================
+
+async function loadProfile(){
 
   const user =
     await getUser();
 
+  if(!user) return;
+
+  const { data } =
+    await client
+    .from("profiles")
+    .select("*")
+    .eq("email", user.email)
+    .single();
+
+  // CREATE AUTO PROFILE
+
+  if(!data){
+
+    const username =
+      user.email.split("@")[0];
+
+    await client
+      .from("profiles")
+      .insert([{
+        email:user.email,
+        username,
+        bio:"New Votarox user",
+        avatar:username.charAt(0).toUpperCase()
+      }]);
+
+    return loadProfile();
+  }
+
+  profileCard.classList.remove("hidden");
+
+  profileUsername.innerText =
+    `@${data.username}`;
+
+  profileBio.innerText =
+    data.bio;
+
+  avatar.innerText =
+    data.avatar || "U";
+
+  usernameInput.value =
+    data.username;
+
+  bioInput.value =
+    data.bio;
+
   userBox.innerText =
-    user
-    ? user.email
-    : "Guest";
+    `@${data.username}`;
+}
+
+async function saveProfile(){
+
+  const user =
+    await getUser();
+
+  if(!user){
+
+    alert("Login required");
+
+    return;
+  }
+
+  await client
+    .from("profiles")
+    .update({
+      username:usernameInput.value,
+      bio:bioInput.value,
+      avatar:usernameInput.value
+        .charAt(0)
+        .toUpperCase()
+    })
+    .eq("email", user.email);
+
+  loadProfile();
+
+  alert("Profile updated");
 }
 
 // ================= AUTH =================
@@ -248,14 +390,14 @@ async function signIn(){
     password: password.value
   });
 
-  updateUI();
+  loadProfile();
 }
 
 async function logout(){
 
   await client.auth.signOut();
 
-  updateUI();
+  location.reload();
 }
 
 // ================= CREATE POST =================
@@ -272,8 +414,6 @@ async function addPoll(){
     return;
   }
 
-  // VALIDATION
-
   if(question.value.trim().length < 3){
 
     alert("Post too short");
@@ -281,20 +421,27 @@ async function addPoll(){
     return;
   }
 
-  // LOADING
-
   postBtn.disabled = true;
 
   postBtn.innerText = "Posting...";
+
+  const { data: profile } =
+    await client
+    .from("profiles")
+    .select("*")
+    .eq("email", user.email)
+    .single();
 
   const { error } =
     await client
     .from("polls")
     .insert([{
       question: question.value,
-      upvotes: 0,
-      downvotes: 0,
-      user_email: user.email
+      upvotes:0,
+      downvotes:0,
+      user_email:user.email,
+      username:profile.username,
+      avatar:profile.avatar
     }]);
 
   postBtn.disabled = false;
@@ -346,18 +493,22 @@ function render(items){
           <div
             class="w-12 h-12 rounded-full bg-purple-500 flex items-center justify-center text-xl font-bold">
 
-            ${p.user_email.charAt(0).toUpperCase()}
+            ${p.avatar || "U"}
 
           </div>
 
           <div>
 
             <div class="font-bold">
-              ${p.user_email}
+
+              @${p.username || "user"}
+
             </div>
 
             <div class="text-xs text-gray-400">
-              Votarox User
+
+              ${p.user_email}
+
             </div>
 
           </div>
@@ -571,7 +722,9 @@ async function loadComments(id){
       <div class="bg-white/10 rounded-xl p-3 text-sm">
 
         <span class="font-bold">
+
           ${c.user_email}
+
         </span>
 
         : ${c.content}
@@ -630,7 +783,7 @@ client
 
 // ================= START =================
 
-updateUI();
+loadProfile();
 
 loadFeed();
 
